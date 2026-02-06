@@ -1,5 +1,17 @@
 {
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_run_code",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close",
+      "Bash(npx vitest run)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_file_upload"
+    ]
+  },
   "enabledMcpjsonServers": [
     "playwright"
-  ]
+  ],
+  "gitAttribution": false
 }
