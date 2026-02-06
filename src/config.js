@@ -43,9 +43,13 @@ export const GROW_DURATION = 1.2;
 
 // Key bindings
 export const KEYS = {
-  HIT_1: 'Z',
-  HIT_2: 'X'
+  HIT_1: 'SPACE',
+  HIT_2: 'Z',
+  HIT_3: 'X'
 };
+
+// Countdown before song starts
+export const COUNTDOWN_DURATION = 3;
 
 // Scene keys
 export const SCENES = {

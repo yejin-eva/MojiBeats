@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
 import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
@@ -58,7 +58,7 @@ export default class GameplayScene extends Phaser.Scene {
       color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
 
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to quit  |  Z/X to hit  |  Move mouse to aim', {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to quit  |  SPACE/Z/X to hit  |  Move mouse to aim', {
       fontSize: '14px',
       fontFamily: 'Arial',
       color: '#9ca3af'
@@ -69,6 +69,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.nextSpawnIndex = 0;
     this.nextBeatIndex = 0;
     this.activeTargets = [];
+    this.started = false;
 
     this.inputHandler = new InputHandler(this, (x, y) => this.handleHit(x, y));
 
@@ -78,7 +79,7 @@ export default class GameplayScene extends Phaser.Scene {
     });
 
     if (this.audioManager) {
-      this.audioManager.play();
+      this.startCountdown();
     } else {
       this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'No audio loaded', {
         fontSize: '36px',
@@ -88,8 +89,39 @@ export default class GameplayScene extends Phaser.Scene {
     }
   }
 
+  startCountdown() {
+    const numbers = [];
+    for (let i = COUNTDOWN_DURATION; i >= 1; i--) {
+      numbers.push(i);
+    }
+
+    numbers.forEach((num, idx) => {
+      this.time.delayedCall(idx * 1000, () => {
+        const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, `${num}`, {
+          fontSize: '96px',
+          fontFamily: 'Arial',
+          color: '#7c3aed'
+        }).setOrigin(0.5).setAlpha(1).setScale(0.5);
+
+        this.tweens.add({
+          targets: text,
+          scale: 1.5,
+          alpha: 0,
+          duration: 800,
+          ease: 'Power2',
+          onComplete: () => text.destroy()
+        });
+      });
+    });
+
+    this.time.delayedCall(COUNTDOWN_DURATION * 1000, () => {
+      this.started = true;
+      this.audioManager.play();
+    });
+  }
+
   update() {
-    if (!this.audioManager) return;
+    if (!this.audioManager || !this.started) return;
 
     const currentTime = this.audioManager.getCurrentTime();
 

@@ -1,27 +1,29 @@
-import { KEYS, TIMING } from '../config.js';
+import { KEYS } from '../config.js';
 
 export default class InputHandler {
   constructor(scene, onHit) {
     this.scene = scene;
     this.onHit = onHit;
 
-    this.keyZ = scene.input.keyboard.addKey(KEYS.HIT_1);
-    this.keyX = scene.input.keyboard.addKey(KEYS.HIT_2);
+    this.keys = [
+      scene.input.keyboard.addKey(KEYS.HIT_1),
+      scene.input.keyboard.addKey(KEYS.HIT_2),
+      scene.input.keyboard.addKey(KEYS.HIT_3)
+    ];
 
-    this.keyZ.on('down', () => this.tryHit());
-    this.keyX.on('down', () => this.tryHit());
+    for (const key of this.keys) {
+      key.on('down', () => this.tryHit());
+    }
   }
 
   tryHit() {
     const pointer = this.scene.input.activePointer;
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY;
-
-    this.onHit(worldX, worldY);
+    this.onHit(pointer.worldX, pointer.worldY);
   }
 
   destroy() {
-    this.keyZ.destroy();
-    this.keyX.destroy();
+    for (const key of this.keys) {
+      key.destroy();
+    }
   }
 }
