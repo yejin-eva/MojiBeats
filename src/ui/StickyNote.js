@@ -24,13 +24,13 @@ export default class StickyNote {
 
     this.bgRect = this.scene.add.rectangle(0, 0, WIDTH, HEIGHT, Phaser.Display.Color.HexStringToColor(bg).color);
 
-    const tapeWidth = 40;
-    const tapeHeight = 12;
+    const tapeWidth = WIDTH * 0.24;
+    const tapeHeight = HEIGHT * 0.09;
     this.tape = this.scene.add.rectangle(0, -HEIGHT / 2 + 2, tapeWidth, tapeHeight, 0xffffff, 0.6)
       .setStrokeStyle(1, 0xcccccc);
 
-    this.emojiText = this.scene.add.text(0, -30, this.songData.emoji || '🎵', {
-      fontSize: '18px',
+    this.emojiText = this.scene.add.text(0, -HEIGHT * 0.31, this.songData.emoji || '🎵', {
+      fontSize: `${Math.round(HEIGHT * 0.14)}px`,
       padding: { top: 2, bottom: 2 },
     }).setOrigin(0.5);
 
@@ -38,20 +38,20 @@ export default class StickyNote {
     const title = this.songData.title || 'Untitled';
     const displayTitle = title.length > maxTitleLen ? title.slice(0, maxTitleLen - 1) + '…' : title;
 
-    this.titleText = this.scene.add.text(0, -8, displayTitle, {
-      fontSize: '14px',
+    this.titleText = this.scene.add.text(0, -HEIGHT * 0.17, displayTitle, {
+      fontSize: `${Math.round(HEIGHT * 0.11)}px`,
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
-      wordWrap: { width: STICKY_NOTE.WIDTH - 16 },
+      wordWrap: { width: WIDTH - 16 },
     }).setOrigin(0.5);
 
-    this.detailText = this.scene.add.text(0, 14, this.getDetailString(), {
-      fontSize: '11px',
+    this.detailText = this.scene.add.text(0, HEIGHT * 0.1, this.getDetailString(), {
+      fontSize: `${Math.round(HEIGHT * 0.085)}px`,
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
-      wordWrap: { width: STICKY_NOTE.WIDTH - 20 },
+      wordWrap: { width: WIDTH - 20 },
       lineSpacing: 2,
       alpha: 0,
     }).setOrigin(0.5);
@@ -89,7 +89,7 @@ export default class StickyNote {
       parts.push(`Best: ${this.songData.bestScore.toLocaleString()}`);
     }
     if (this.songData.grade) parts.push(this.songData.grade);
-    return parts.join('  ·  ') || '';
+    return parts.join('\n') || '';
   }
 
   positionCollapsed() {
