@@ -64,7 +64,8 @@ export default class GameplayScene extends Phaser.Scene {
       color: '#4b5563'
     }).setOrigin(0.5);
 
-    this.beatmap = generateBeatmap(this.beats);
+    this.beatmap = generateBeatmap(this.beats, this.bpm);
+    console.log(`[MojiBeats] Beatmap: ${this.beatmap.length} targets (from ${this.beats.length} raw beats)`);
     this.nextSpawnIndex = 0;
     this.nextBeatIndex = 0;
     this.activeTargets = [];
