@@ -24,7 +24,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, 100, 'MojiBeats', {
       fontSize: '96px',
       fontFamily: THEME_FONT,
-      color: '#7c3aed'
+      color: '#ec4899'
     }).setOrigin(0.5);
 
     this.add.text(GAME_WIDTH / 2, 190, 'Select a Song', {
@@ -50,15 +50,15 @@ export default class SongSelectScene extends Phaser.Scene {
 
   createUploadButton() {
     const uploadBtn = this.add.text(GAME_WIDTH / 2, 320, 'Upload MP3', {
-      fontSize: '40px',
+      fontSize: '28px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#7c3aed',
-      padding: { x: 40, y: 16 }
+      backgroundColor: '#6b7280',
+      padding: { x: 28, y: 11 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    uploadBtn.on('pointerover', () => uploadBtn.setStyle({ backgroundColor: '#6d28d9' }));
-    uploadBtn.on('pointerout', () => uploadBtn.setStyle({ backgroundColor: '#7c3aed' }));
+    uploadBtn.on('pointerover', () => uploadBtn.setStyle({ backgroundColor: '#4b5563' }));
+    uploadBtn.on('pointerout', () => uploadBtn.setStyle({ backgroundColor: '#6b7280' }));
     uploadBtn.on('pointerdown', () => this.triggerFileUpload());
 
     this.uploadBtn = uploadBtn;
@@ -77,7 +77,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
     this.dragOverHandler = (e) => {
       e.preventDefault();
-      this.dropHint.setColor('#7c3aed');
+      this.dropHint.setColor('#ec4899');
     };
 
     this.dragLeaveHandler = () => {

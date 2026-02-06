@@ -54,7 +54,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.comboText = this.add.text(GAME_WIDTH - 20, 82, '', {
       fontSize: '22px',
       fontFamily: THEME_FONT,
-      color: '#7c3aed'
+      color: '#ec4899'
     }).setOrigin(1, 0);
 
     this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
@@ -103,7 +103,7 @@ export default class GameplayScene extends Phaser.Scene {
         const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, `${num}`, {
           fontSize: '120px',
           fontFamily: THEME_FONT,
-          color: '#7c3aed'
+          color: '#ec4899'
         }).setOrigin(0.5).setAlpha(1).setScale(0.5);
 
         this.tweens.add({
@@ -359,19 +359,19 @@ export default class GameplayScene extends Phaser.Scene {
     const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, 'Paused', {
       fontSize: '64px',
       fontFamily: THEME_FONT,
-      color: '#7c3aed',
+      color: '#ec4899',
     }).setOrigin(0.5);
 
     const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10, 'Resume', {
       fontSize: '36px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#7c3aed',
+      backgroundColor: '#ec4899',
       padding: { x: 32, y: 12 },
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: '#6d28d9' }));
-    resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: '#7c3aed' }));
+    resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: '#db2777' }));
+    resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: '#ec4899' }));
     resumeBtn.on('pointerdown', () => this.resumeGame());
 
     const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80, 'Quit to Menu', {

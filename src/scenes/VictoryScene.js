@@ -86,7 +86,7 @@ export default class VictoryScene extends Phaser.Scene {
       fontSize: '32px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#7c3aed',
+      backgroundColor: '#ec4899',
       padding: { x: 28, y: 12 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 

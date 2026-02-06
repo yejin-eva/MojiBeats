@@ -62,12 +62,12 @@ export default class StickyNote {
       fontSize: '16px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#7c3aed',
+      backgroundColor: '#ec4899',
       padding: { x: 16, y: 6 },
     }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
 
-    this.playBtn.on('pointerover', () => this.playBtn.setStyle({ backgroundColor: '#6d28d9' }));
-    this.playBtn.on('pointerout', () => this.playBtn.setStyle({ backgroundColor: '#7c3aed' }));
+    this.playBtn.on('pointerover', () => this.playBtn.setStyle({ backgroundColor: '#db2777' }));
+    this.playBtn.on('pointerout', () => this.playBtn.setStyle({ backgroundColor: '#ec4899' }));
     this.playBtn.on('pointerdown', () => {
       this.scene.events.emit('sticky-play', this.songData.id);
     });
