@@ -81,7 +81,10 @@ export default class SongSelectScene extends Phaser.Scene {
   async loadSavedSongs() {
     try {
       const songs = await getAllSongs();
-      if (songs.length === 0) return;
+      if (songs.length === 0) {
+        this.clearStickyNotes();
+        return;
+      }
 
       const songsWithScores = songs.map((song) => {
         const score = getScoreForSong(song.id);

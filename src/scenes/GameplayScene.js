@@ -62,7 +62,7 @@ export default class GameplayScene extends Phaser.Scene {
       color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
 
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to quit  |  SPACE/Z/X to hit  |  Move mouse to aim', {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to pause  |  SPACE/Z/X to hit  |  Move mouse to aim', {
       fontSize: '14px',
       fontFamily: 'Arial',
       color: '#9ca3af'
@@ -77,10 +77,8 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.inputHandler = new InputHandler(this, (x, y) => this.handleHit(x, y));
 
-    this.input.keyboard.on('keydown-ESC', () => {
-      this.stopAudio();
-      pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
-    });
+    this.paused = false;
+    this.input.keyboard.on('keydown-ESC', () => this.togglePause());
 
     if (this.audioManager) {
       this.startCountdown();
@@ -125,7 +123,7 @@ export default class GameplayScene extends Phaser.Scene {
   }
 
   update() {
-    if (!this.audioManager || !this.started) return;
+    if (!this.audioManager || !this.started || this.paused) return;
 
     const currentTime = this.audioManager.getCurrentTime();
 
@@ -313,5 +311,69 @@ export default class GameplayScene extends Phaser.Scene {
       this.audioManager.stop();
     }
     this.cleanupTargets();
+  }
+
+  togglePause() {
+    if (this.paused) {
+      this.resumeGame();
+    } else {
+      this.pauseGame();
+    }
+  }
+
+  pauseGame() {
+    this.paused = true;
+    if (this.audioManager) {
+      this.audioManager.pause();
+    }
+
+    this.pauseOverlay = this.add.container(0, 0).setDepth(1000);
+
+    const dimBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5);
+
+    const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, 'Paused', {
+      fontSize: '64px',
+      fontFamily: THEME_FONT,
+      color: '#7c3aed',
+    }).setOrigin(0.5);
+
+    const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10, 'Resume', {
+      fontSize: '36px',
+      fontFamily: THEME_FONT,
+      color: '#ffffff',
+      backgroundColor: '#7c3aed',
+      padding: { x: 32, y: 12 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: '#6d28d9' }));
+    resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: '#7c3aed' }));
+    resumeBtn.on('pointerdown', () => this.resumeGame());
+
+    const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80, 'Quit to Menu', {
+      fontSize: '24px',
+      fontFamily: THEME_FONT,
+      color: '#6b7280',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    quitBtn.on('pointerover', () => quitBtn.setColor('#ef4444'));
+    quitBtn.on('pointerout', () => quitBtn.setColor('#6b7280'));
+    quitBtn.on('pointerdown', () => {
+      this.paused = false;
+      this.stopAudio();
+      pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
+    });
+
+    this.pauseOverlay.add([dimBg, title, resumeBtn, quitBtn]);
+  }
+
+  resumeGame() {
+    this.paused = false;
+    if (this.pauseOverlay) {
+      this.pauseOverlay.destroy();
+      this.pauseOverlay = null;
+    }
+    if (this.audioManager) {
+      this.audioManager.play();
+    }
   }
 }

@@ -29,16 +29,16 @@ export default class StickyNote {
     this.tape = this.scene.add.rectangle(0, -HEIGHT / 2 + 2, tapeWidth, tapeHeight, 0xffffff, 0.6)
       .setStrokeStyle(1, 0xcccccc);
 
-    this.emojiText = this.scene.add.text(0, -20, this.songData.emoji || '🎵', {
-      fontSize: '32px',
-      padding: { top: 4, bottom: 4 },
+    this.emojiText = this.scene.add.text(0, -30, this.songData.emoji || '🎵', {
+      fontSize: '18px',
+      padding: { top: 2, bottom: 2 },
     }).setOrigin(0.5);
 
     const maxTitleLen = 14;
     const title = this.songData.title || 'Untitled';
     const displayTitle = title.length > maxTitleLen ? title.slice(0, maxTitleLen - 1) + '…' : title;
 
-    this.titleText = this.scene.add.text(0, 16, displayTitle, {
+    this.titleText = this.scene.add.text(0, -8, displayTitle, {
       fontSize: '14px',
       fontFamily: THEME_FONT,
       color: textColor,
@@ -46,11 +46,13 @@ export default class StickyNote {
       wordWrap: { width: STICKY_NOTE.WIDTH - 16 },
     }).setOrigin(0.5);
 
-    this.detailText = this.scene.add.text(0, 38, this.getDetailString(), {
+    this.detailText = this.scene.add.text(0, 14, this.getDetailString(), {
       fontSize: '11px',
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
+      wordWrap: { width: STICKY_NOTE.WIDTH - 20 },
+      lineSpacing: 2,
       alpha: 0,
     }).setOrigin(0.5);
 
@@ -103,9 +105,8 @@ export default class StickyNote {
   }
 
   addInteraction() {
-    const { WIDTH, HEIGHT, COLLAPSED_Y, PEEK_Y } = STICKY_NOTE;
-    const peekTravel = COLLAPSED_Y - PEEK_Y;
-    const hitArea = new Phaser.Geom.Rectangle(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT + peekTravel);
+    const { WIDTH, HEIGHT } = STICKY_NOTE;
+    const hitArea = new Phaser.Geom.Rectangle(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT);
     this.container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
     this.container.input.cursor = 'pointer';
 
