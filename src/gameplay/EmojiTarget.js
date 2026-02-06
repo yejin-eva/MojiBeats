@@ -1,4 +1,5 @@
-import { GROW_DURATION } from '../config.js';
+import { GROW_DURATION, EMOJI_TEXTURE } from '../config.js';
+import { getEmojiTextureKey, getOutlineTextureKey } from './EmojiCache.js';
 
 const STATE_GROWING = 'growing';
 const STATE_ACTIVE = 'active';
@@ -15,13 +16,19 @@ export default class EmojiTarget {
     this.y = event.y;
     this.state = STATE_GROWING;
     this.pulsed = false;
+    this.emojiChar = event.emoji;
 
-    this.outline = scene.add.circle(event.x, event.y, 36, event.color, 0.3)
-      .setScale(1).setStrokeStyle(2, event.color);
+    const outlineKey = getOutlineTextureKey(event.emoji);
+    const emojiKey = getEmojiTextureKey(event.emoji);
 
-    this.text = scene.add.text(event.x, event.y, event.emoji, {
-      fontSize: '48px'
-    }).setOrigin(0.5).setScale(0).setAlpha(0);
+    this.outline = scene.add.image(event.x, event.y, outlineKey)
+      .setTint(event.color)
+      .setAlpha(0.5)
+      .setScale(EMOJI_TEXTURE.DISPLAY_SCALE);
+
+    this.emoji = scene.add.image(event.x, event.y, emojiKey)
+      .setScale(0)
+      .setAlpha(0);
   }
 
   update(currentTime) {
@@ -30,7 +37,8 @@ export default class EmojiTarget {
     const elapsed = currentTime - this.spawnTime;
     const progress = Math.min(elapsed / GROW_DURATION, 1);
 
-    this.text.setScale(progress).setAlpha(Math.min(progress * 1.5, 1));
+    const scale = progress * EMOJI_TEXTURE.DISPLAY_SCALE;
+    this.emoji.setScale(scale).setAlpha(Math.min(progress * 1.5, 1));
 
     if (progress >= 1 && this.state === STATE_GROWING) {
       this.state = STATE_ACTIVE;
@@ -42,13 +50,15 @@ export default class EmojiTarget {
     if (this.pulsed) return;
     this.pulsed = true;
 
-    const ring = this.scene.add.circle(this.x, this.y, 36, this.color, 0)
-      .setStrokeStyle(3, this.color);
+    const outlineKey = getOutlineTextureKey(this.emojiChar);
+    const ring = this.scene.add.image(this.x, this.y, outlineKey)
+      .setTint(this.color)
+      .setScale(EMOJI_TEXTURE.DISPLAY_SCALE);
 
     this.scene.tweens.add({
       targets: ring,
-      scaleX: 1.8,
-      scaleY: 1.8,
+      scaleX: EMOJI_TEXTURE.DISPLAY_SCALE * 1.8,
+      scaleY: EMOJI_TEXTURE.DISPLAY_SCALE * 1.8,
       alpha: 0,
       duration: 400,
       ease: 'Power2',
@@ -63,7 +73,7 @@ export default class EmojiTarget {
   containsPoint(x, y) {
     const dx = x - this.x;
     const dy = y - this.y;
-    const radius = 36 * this.text.scaleX;
+    const radius = 36 * (this.emoji.scaleX / EMOJI_TEXTURE.DISPLAY_SCALE);
     return dx * dx + dy * dy <= radius * radius;
   }
 
@@ -75,7 +85,7 @@ export default class EmojiTarget {
   miss() {
     this.state = STATE_MISSED;
     this.scene.tweens.add({
-      targets: [this.text, this.outline],
+      targets: [this.emoji, this.outline],
       alpha: 0,
       duration: 300,
       onComplete: () => this.destroy()
@@ -83,9 +93,9 @@ export default class EmojiTarget {
   }
 
   destroy() {
-    if (this.text) this.text.destroy();
+    if (this.emoji) this.emoji.destroy();
     if (this.outline) this.outline.destroy();
-    this.text = null;
+    this.emoji = null;
     this.outline = null;
   }
 

@@ -56,6 +56,15 @@ export const SCENES = {
   VICTORY: 'VictoryScene'
 };
 
+// Emoji texture caching
+export const EMOJI_TEXTURE = {
+  CANVAS_SIZE: 96,
+  FONT_SIZE: 64,
+  DILATION_RADIUS: 3,
+  FONT_FAMILY: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
+  DISPLAY_SCALE: 0.75
+};
+
 // Game dimensions
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;
