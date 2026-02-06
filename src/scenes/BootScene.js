@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES } from '../config.js';
+import { SCENES, THEME_FONT } from '../config.js';
 import { cacheEmojiTextures } from '../gameplay/EmojiCache.js';
 
 export default class BootScene extends Phaser.Scene {
@@ -7,8 +7,9 @@ export default class BootScene extends Phaser.Scene {
     super(SCENES.BOOT);
   }
 
-  create() {
+  async create() {
     cacheEmojiTextures(this);
+    await document.fonts.load(`16px "${THEME_FONT}"`);
     this.scene.start(SCENES.SONG_SELECT);
   }
 }
