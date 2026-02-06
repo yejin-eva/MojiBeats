@@ -45,6 +45,9 @@ export default class AudioManager {
     this.playing = true;
 
     this.sourceNode.onended = () => {
+      if (this.playing) {
+        this.pauseOffset = this.context.currentTime - this.startTime;
+      }
       this.playing = false;
     };
   }
