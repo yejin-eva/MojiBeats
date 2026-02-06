@@ -1,6 +1,6 @@
-import { GAME_WIDTH } from '../config.js';
+import { GAME_WIDTH, THEME } from '../config.js';
 
-const BLEED_COLORS = [0xff69b4, 0x9b59b6, 0xc084fc];
+const BLEED_COLORS = [THEME.PRIMARY_HEX, 0x9b59b6, 0xc084fc];
 
 export function emitBleed(scene) {
   const barCenterX = GAME_WIDTH / 2;

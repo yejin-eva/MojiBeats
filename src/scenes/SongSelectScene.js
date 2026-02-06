@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK, STICKY_NOTE, EMOJI_POOL } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, STICKY_NOTE, EMOJI_POOL } from '../config.js';
 import AudioManager from '../audio/AudioManager.js';
 import { detectBeats, estimateBpm } from '../audio/BeatDetector.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { getAllSongs, getSongBlob, saveSong, sanitizeTitle, incrementPlayCount, deleteSong } from '../storage/SongLibrary.js';
 import { getScoreForSong } from '../storage/ScoreStore.js';
 import StickyNote from '../ui/StickyNote.js';
@@ -12,6 +13,10 @@ export default class SongSelectScene extends Phaser.Scene {
     super(SCENES.SONG_SELECT);
   }
 
+  init(data) {
+    this.retryData = data || {};
+  }
+
   create() {
     this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
     pageFlipIn(this);
@@ -19,12 +24,13 @@ export default class SongSelectScene extends Phaser.Scene {
     this.stickyNotes = [];
     this.selectedSongId = null;
 
-    this.drawNotebookGrid();
+    drawNotebookGrid(this);
+    scatterDoodles(this);
 
     this.add.text(GAME_WIDTH / 2, 100, 'MojiBeats', {
       fontSize: '96px',
       fontFamily: THEME_FONT,
-      color: '#ec4899'
+      color: THEME.PRIMARY
     }).setOrigin(0.5);
 
     this.add.text(GAME_WIDTH / 2, 190, 'Select a Song', {
@@ -46,6 +52,10 @@ export default class SongSelectScene extends Phaser.Scene {
     this.loadSavedSongs();
 
     this.input.on('pointerdown', (pointer) => this.onBackgroundClick(pointer));
+
+    if (this.retryData.retrySongId) {
+      this.playSavedSong(this.retryData.retrySongId, { minSpacing: this.retryData.retryMinSpacing });
+    }
   }
 
   createUploadButton() {
@@ -77,7 +87,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
     this.dragOverHandler = (e) => {
       e.preventDefault();
-      this.dropHint.setColor('#ec4899');
+      this.dropHint.setColor(THEME.PRIMARY);
     };
 
     this.dragLeaveHandler = () => {
@@ -110,16 +120,6 @@ export default class SongSelectScene extends Phaser.Scene {
     this.events.on('sticky-select', (songId) => this.onStickySelect(songId));
     this.events.on('sticky-play', ({ songId, difficulty }) => this.playSavedSong(songId, difficulty));
     this.events.on('sticky-delete', (songId) => this.onStickyDelete(songId));
-  }
-
-  drawNotebookGrid() {
-    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
-      this.add.rectangle(GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
-    }
-    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
-      this.add.rectangle(x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
-    }
-    this.add.rectangle(NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA);
   }
 
   async loadSavedSongs() {
@@ -213,6 +213,33 @@ export default class SongSelectScene extends Phaser.Scene {
     }
   }
 
+  showLoadingSpinner() {
+    this.spinnerText = this.add.text(GAME_WIDTH / 2, 480, '🎵', {
+      fontSize: '48px',
+    }).setOrigin(0.5);
+
+    this.spinnerTween = this.tweens.add({
+      targets: this.spinnerText,
+      y: 460,
+      angle: { from: -15, to: 15 },
+      duration: 400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  hideLoadingSpinner() {
+    if (this.spinnerTween) {
+      this.spinnerTween.destroy();
+      this.spinnerTween = null;
+    }
+    if (this.spinnerText) {
+      this.spinnerText.destroy();
+      this.spinnerText = null;
+    }
+  }
+
   triggerFileUpload() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -228,6 +255,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.statusText.setText('Loading audio...');
     this.uploadBtn.setVisible(false);
     this.dropHint.setVisible(false);
+    this.showLoadingSpinner();
 
     const audioManager = new AudioManager();
 
@@ -259,6 +287,7 @@ export default class SongSelectScene extends Phaser.Scene {
       console.log(`[MojiBeats] Detected ${beats.length} beats`);
       console.log(`[MojiBeats] Estimated BPM: ${bpm.toFixed(1)}`);
 
+      this.hideLoadingSpinner();
       this.statusText.setText('Pick a difficulty!');
       this.uploadBtn.setVisible(true);
       this.dropHint.setVisible(true);
@@ -267,6 +296,7 @@ export default class SongSelectScene extends Phaser.Scene {
       this.onStickySelect(songId);
     } catch (err) {
       console.error('[MojiBeats] Audio load error:', err);
+      this.hideLoadingSpinner();
       this.statusText.setText('Error loading audio. Try another MP3.');
       this.uploadBtn.setVisible(true);
       this.dropHint.setVisible(true);
@@ -279,6 +309,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.statusText.setText('Loading song...');
     this.uploadBtn.setVisible(false);
     this.dropHint.setVisible(false);
+    this.showLoadingSpinner();
 
     try {
       const blob = await getSongBlob(songId);
@@ -305,12 +336,14 @@ export default class SongSelectScene extends Phaser.Scene {
       const songName = note ? note.songData.title : 'Unknown';
 
       await incrementPlayCount(songId);
+      this.hideLoadingSpinner();
 
       pageFlipOut(this, () => {
         this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing });
       });
     } catch (err) {
       console.error('[MojiBeats] Failed to load saved song:', err);
+      this.hideLoadingSpinner();
       this.statusText.setText('Error loading song. Try again.');
       this.uploadBtn.setVisible(true);
       this.dropHint.setVisible(true);

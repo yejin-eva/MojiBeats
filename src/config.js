@@ -34,7 +34,7 @@ export const EMOJI_POOL = [
 
 // Target outline colors
 export const TARGET_COLORS = [
-  0xff69b4, // pink
+  0xa78bfa, // lavender (theme)
   0x9b59b6, // purple
   0x3498db, // blue
   0x2ecc71, // green
@@ -124,6 +124,12 @@ export const STORAGE = {
 };
 
 // Theme
+export const THEME = {
+  PRIMARY: '#a78bfa',
+  PRIMARY_HOVER: '#8b5cf6',
+  PRIMARY_HEX: 0xa78bfa,
+};
+
 export const THEME_FONT = 'FriendlyScribbles';
 
 // Notebook background

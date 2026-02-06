@@ -1,6 +1,6 @@
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, THEME } from '../config.js';
 
-const COLORS = [0xff69b4, 0x7c3aed, 0x3498db, 0x2ecc71, 0xfbbf24, 0xf43f5e, 0x60a5fa, 0xa78bfa];
+const COLORS = [THEME.PRIMARY_HEX, 0x7c3aed, 0x3498db, 0x2ecc71, 0xfbbf24, 0xf43f5e, 0x60a5fa, 0xa78bfa];
 const COUNT = 60;
 
 export function emitConfetti(scene) {

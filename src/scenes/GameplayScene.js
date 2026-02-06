@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, NOTEBOOK } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, THEME, NOTEBOOK } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
 import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
@@ -55,7 +55,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.comboText = this.add.text(GAME_WIDTH - 20, 82, '', {
       fontSize: '22px',
       fontFamily: THEME_FONT,
-      color: '#ec4899'
+      color: THEME.PRIMARY
     }).setOrigin(1, 0);
 
     this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
@@ -104,7 +104,7 @@ export default class GameplayScene extends Phaser.Scene {
         const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, `${num}`, {
           fontSize: '120px',
           fontFamily: THEME_FONT,
-          color: '#ec4899'
+          color: THEME.PRIMARY
         }).setOrigin(0.5).setAlpha(1).setScale(0.5);
 
         this.tweens.add({
@@ -293,6 +293,7 @@ export default class GameplayScene extends Phaser.Scene {
       accuracy: getAccuracy(this.scoreState),
       songName: this.songName,
       songId: this.songId,
+      minSpacing: this.minSpacing,
     };
   }
 
@@ -360,19 +361,19 @@ export default class GameplayScene extends Phaser.Scene {
     const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, 'Paused', {
       fontSize: '64px',
       fontFamily: THEME_FONT,
-      color: '#ec4899',
+      color: THEME.PRIMARY,
     }).setOrigin(0.5);
 
     const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10, 'Resume', {
       fontSize: '36px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#ec4899',
+      backgroundColor: THEME.PRIMARY,
       padding: { x: 32, y: 12 },
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: '#db2777' }));
-    resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: '#ec4899' }));
+    resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: THEME.PRIMARY_HOVER }));
+    resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: THEME.PRIMARY }));
     resumeBtn.on('pointerdown', () => this.resumeGame());
 
     const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80, 'Quit to Menu', {

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { emitConfetti } from '../effects/Confetti.js';
 import { calculateGrade, saveScore } from '../storage/ScoreStore.js';
 
@@ -10,14 +11,17 @@ export default class VictoryScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '', songId: null };
+    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '', songId: null, minSpacing: 0.4 };
+    this.retrySongId = this.results.songId;
+    this.retryMinSpacing = this.results.minSpacing || 0.4;
   }
 
   create() {
     this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
     pageFlipIn(this);
 
-    this.drawNotebookGrid();
+    drawNotebookGrid(this);
+    scatterDoodles(this);
     this.time.delayedCall(500, () => emitConfetti(this));
 
     const { score, maxCombo, accuracy, songId } = this.results;
@@ -86,11 +90,14 @@ export default class VictoryScene extends Phaser.Scene {
       fontSize: '32px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
-      backgroundColor: '#ec4899',
+      backgroundColor: THEME.PRIMARY,
       padding: { x: 28, y: 12 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    retryBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT));
+    retryBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT, {
+      retrySongId: this.retrySongId,
+      retryMinSpacing: this.retryMinSpacing,
+    }));
 
     const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 520, 'Song Select', {
       fontSize: '32px',
@@ -103,8 +110,8 @@ export default class VictoryScene extends Phaser.Scene {
     selectBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT));
   }
 
-  fadeToScene(scene) {
-    pageFlipOut(this, () => this.scene.start(scene));
+  fadeToScene(scene, data) {
+    pageFlipOut(this, () => this.scene.start(scene, data));
   }
 
   animateCounter(from, to, duration, delay, onUpdate) {
@@ -117,16 +124,6 @@ export default class VictoryScene extends Phaser.Scene {
       ease: 'Power2',
       onUpdate: () => onUpdate(Math.round(counter.val))
     });
-  }
-
-  drawNotebookGrid() {
-    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
-      this.add.rectangle(GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
-    }
-    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
-      this.add.rectangle(x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
-    }
-    this.add.rectangle(NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA);
   }
 
   gradeColor(grade) {

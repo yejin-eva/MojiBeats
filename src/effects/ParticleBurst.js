@@ -1,4 +1,6 @@
-const PARTICLE_COLORS = [0xff69b4, 0x9b59b6, 0x3498db, 0xfbbf24, 0x34d399, 0xe74c3c];
+import { THEME } from '../config.js';
+
+const PARTICLE_COLORS = [THEME.PRIMARY_HEX, 0x9b59b6, 0x3498db, 0xfbbf24, 0x34d399, 0xe74c3c];
 
 export function emitBurst(scene, x, y, color) {
   const count = 30;

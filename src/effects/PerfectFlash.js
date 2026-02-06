@@ -1,6 +1,6 @@
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, THEME } from '../config.js';
 
-const CONFETTI_COLORS = [0xfbbf24, 0xff69b4, 0x9b59b6, 0x34d399, 0x3498db, 0xf97316];
+const CONFETTI_COLORS = [0xfbbf24, THEME.PRIMARY_HEX, 0x9b59b6, 0x34d399, 0x3498db, 0xf97316];
 
 export function emitPerfectConfetti(scene) {
   const count = 12;

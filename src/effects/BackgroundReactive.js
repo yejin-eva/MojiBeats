@@ -1,32 +1,19 @@
-import { GAME_WIDTH, GAME_HEIGHT, NOTEBOOK } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { drawNotebookGrid, scatterDoodles } from './NotebookBackground.js';
 
 export default class BackgroundReactive {
   constructor(scene) {
     this.scene = scene;
 
-    this.gridLines = [];
-
-    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
-      const line = scene.add.rectangle(
-        GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA
-      );
-      this.gridLines.push(line);
-    }
-
-    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
-      const line = scene.add.rectangle(
-        x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA
-      );
-      this.gridLines.push(line);
-    }
-
-    this.marginLine = scene.add.rectangle(
-      NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA
-    );
+    const { lines, margin } = drawNotebookGrid(scene);
+    this.gridLines = lines;
+    this.marginLine = margin;
 
     this.pulse = scene.add.circle(
       GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 0xc4b5fd, 0
     );
+
+    this.doodles = scatterDoodles(scene);
   }
 
   update(audioManager) {
@@ -63,5 +50,7 @@ export default class BackgroundReactive {
     this.marginLine.destroy();
     for (const line of this.gridLines) line.destroy();
     this.gridLines = [];
+    for (const doodle of this.doodles) doodle.destroy();
+    this.doodles = [];
   }
 }
