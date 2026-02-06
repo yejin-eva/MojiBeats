@@ -1,6 +1,6 @@
 import {
   GROW_DURATION, EMOJI_POOL, TARGET_COLORS,
-  GAME_WIDTH, GAME_HEIGHT
+  GAME_WIDTH, GAME_HEIGHT, PROXIMITY
 } from '../config.js';
 
 const MARGIN_X = 100;
@@ -47,6 +47,28 @@ export function filterBeats(beats, bpm) {
   return selected;
 }
 
+export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marginX, marginTop) {
+  const randX = marginX + Math.random() * playWidth;
+  const randY = marginTop + Math.random() * playHeight;
+
+  if (!prev) return { x: randX, y: randY };
+
+  const t = Math.min(timeDelta / PROXIMITY.FULL_RANDOM_GAP, 1);
+
+  const angle = Math.random() * Math.PI * 2;
+  const dist = Math.random() * PROXIMITY.MAX_DRIFT;
+  const driftX = prev.x + Math.cos(angle) * dist;
+  const driftY = prev.y + Math.sin(angle) * dist;
+
+  const rawX = driftX + (randX - driftX) * t;
+  const rawY = driftY + (randY - driftY) * t;
+
+  return {
+    x: Math.max(marginX, Math.min(marginX + playWidth, rawX)),
+    y: Math.max(marginTop, Math.min(marginTop + playHeight, rawY))
+  };
+}
+
 export function generateBeatmap(beats, bpm) {
   const filtered = bpm ? filterBeats(beats, bpm) : beats;
   if (filtered.length === 0) return [];
@@ -54,12 +76,20 @@ export function generateBeatmap(beats, bpm) {
   const playWidth = GAME_WIDTH - MARGIN_X * 2;
   const playHeight = GAME_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
 
-  return filtered.map((beatTime, i) => ({
-    beatTime,
-    spawnTime: beatTime - GROW_DURATION,
-    x: MARGIN_X + Math.random() * playWidth,
-    y: MARGIN_TOP + Math.random() * playHeight,
-    emoji: EMOJI_POOL[i % EMOJI_POOL.length],
-    color: TARGET_COLORS[i % TARGET_COLORS.length]
-  }));
+  let prev = null;
+  return filtered.map((beatTime, i) => {
+    const timeDelta = prev ? beatTime - prev.beatTime : 0;
+    const pos = computeNextPosition(prev, timeDelta, playWidth, playHeight, MARGIN_X, MARGIN_TOP);
+
+    const event = {
+      beatTime,
+      spawnTime: beatTime - GROW_DURATION,
+      x: pos.x,
+      y: pos.y,
+      emoji: EMOJI_POOL[i % EMOJI_POOL.length],
+      color: TARGET_COLORS[i % TARGET_COLORS.length]
+    };
+    prev = event;
+    return event;
+  });
 }

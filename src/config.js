@@ -65,6 +65,12 @@ export const EMOJI_TEXTURE = {
   DISPLAY_SCALE: 1.125
 };
 
+// Spatial proximity: close beats spawn near each other
+export const PROXIMITY = {
+  MAX_DRIFT: 150,       // max px offset when beats are back-to-back
+  FULL_RANDOM_GAP: 2.0  // seconds apart before positions are fully random
+};
+
 // Urgency indicator: outline shifts color as beat time approaches
 export const URGENCY = {
   COLOR_CALM: 0xc4b5fd,   // soft lavender (far from beat)
