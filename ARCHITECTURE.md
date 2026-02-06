@@ -7,8 +7,8 @@
 | Game Engine     | Phaser 3                       |
 | Audio Analysis  | Web Audio API                  |
 | Beat Detection  | Custom (spectral flux / onset) |
-| UI Framework    | Phaser DOM + HTML/CSS overlays |
-| Storage         | IndexedDB (audio), localStorage (scores/settings) |
+| UI Framework    | Phaser game objects            |
+| Storage         | IndexedDB (audio), localStorage (scores) |
 | Build Tool      | Vite                           |
 | Language        | JavaScript (ES modules)        |
 | Unit Tests      | Vitest                         |
@@ -24,56 +24,71 @@ MojiBeats/
 ├── index.html              # Entry point
 ├── package.json
 ├── vite.config.js
-├── public/
-│   └── fonts/              # Inter font files (fallback)
 ├── src/
 │   ├── main.js             # Phaser game config & bootstrap
-│   ├── config.js           # Game constants (timing, HP, scoring, etc.)
+│   ├── config.js           # All constants: timing, HP, scoring, emojis, theme, etc.
+│   │
+│   ├── assets/
+│   │   └── fonts/
+│   │       └── friendlyscribbles.ttf  # Handwritten theme font
 │   │
 │   ├── scenes/
-│   │   ├── BootScene.js        # Asset preloading
-│   │   ├── SongSelectScene.js  # Song library + upload UI
-│   │   ├── GameplayScene.js    # Main gameplay loop
-│   │   ├── GameOverScene.js    # Game over / results
-│   │   └── VictoryScene.js     # Song complete / results
+│   │   ├── BootScene.js        # Font loading + emoji texture caching
+│   │   ├── SongSelectScene.js  # Song library + upload UI + retry routing
+│   │   ├── GameplayScene.js    # Main gameplay loop + pause overlay
+│   │   ├── GameOverScene.js    # Game over results + retry/select
+│   │   └── VictoryScene.js     # Victory results + grade + retry/select
 │   │
 │   ├── audio/
 │   │   ├── AudioManager.js     # Audio loading, playback, Web Audio API
 │   │   ├── BeatDetector.js     # Onset/beat detection from audio buffer
-│   │   └── YouTubeLoader.js    # YouTube audio extraction
+│   │   └── SFX.js              # Procedural sound effects (oscillator-based)
 │   │
 │   ├── gameplay/
-│   │   ├── BeatmapGenerator.js # Converts beat timestamps → emoji spawn events
-│   │   ├── EmojiTarget.js      # Emoji enemy game object (grow, hit, miss, die)
+│   │   ├── BeatmapGenerator.js # Converts beat timestamps → spawn events
+│   │   ├── EmojiCache.js       # Pre-renders emoji + outline textures to canvas
+│   │   ├── EmojiTarget.js      # Emoji enemy (grow, urgency tint, hit, miss)
 │   │   ├── InputHandler.js     # Mouse + keyboard input, hit detection
-│   │   ├── HealthSystem.js     # HP tracking, damage, heal, game over trigger
-│   │   ├── ScoreSystem.js      # Score calculation, combo tracking
-│   │   └── TimingJudge.js      # Hit window evaluation (Perfect/Great/Good/Miss)
+│   │   ├── HealthSystem.js     # HP tracking, damage, combo heal
+│   │   ├── ScoreSystem.js      # Score, combo, accuracy tracking
+│   │   ├── TimingJudge.js      # Hit window evaluation (Perfect/Great/Good/Miss)
+│   │   └── UrgencyColor.js     # Multi-stop gradient for outline urgency tint
 │   │
 │   ├── effects/
-│   │   ├── ParticleBurst.js    # Kill effect — emoji disintegration particles
-│   │   ├── HealthBleed.js      # Miss effect — health bar bleed particles
-│   │   ├── ComboText.js        # Floating combo counter near kill
-│   │   ├── HealEffect.js       # Combo heal glow on health bar
-│   │   └── BackgroundReactive.js # Music-reactive background visuals
+│   │   ├── BackgroundReactive.js   # Music-reactive pulse + notebook grid + doodles
+│   │   ├── NotebookBackground.js   # Shared notebook grid + emoji doodle rendering
+│   │   ├── ComboText.js            # Floating combo counter near kill
+│   │   ├── Confetti.js             # Victory confetti shower
+│   │   ├── HealthBleed.js          # Health bar bleed particles on miss
+│   │   ├── PageFlip.js             # Page-flip scene transitions
+│   │   ├── ParticleBurst.js        # Kill effect — emoji disintegration particles
+│   │   └── PerfectFlash.js         # Light confetti on perfect hits
 │   │
 │   ├── ui/
-│   │   ├── HealthBar.js        # Health bar rendering
-│   │   ├── ScoreDisplay.js     # Score + accuracy HUD
-│   │   ├── SongCard.js         # Song library card component
-│   │   └── UploadPanel.js      # File upload + YouTube input
+│   │   ├── HealthBar.js        # Health bar rendering + damage/heal effects
+│   │   └── StickyNote.js       # Sticky note song card (select, play, delete)
 │   │
 │   └── storage/
-│       ├── SongLibrary.js      # IndexedDB CRUD for audio files
-│       └── ScoreStore.js       # localStorage for scores & settings
+│       ├── SongLibrary.js      # IndexedDB CRUD for audio files + metadata
+│       └── ScoreStore.js       # localStorage for scores, grades, best combos
 │
 ├── tests/
-│   └── unit/               # Vitest: pure function tests
+│   └── unit/                   # Vitest: pure function tests
+│       ├── BeatDetector.test.js
+│       ├── BeatmapGenerator.test.js
+│       ├── EmojiCache.test.js
+│       ├── HealthSystem.test.js
+│       ├── Proximity.test.js
+│       ├── ScoreStore.test.js
+│       ├── ScoreSystem.test.js
+│       ├── SongLibrary.test.js
+│       ├── TimingJudge.test.js
+│       └── UrgencyColor.test.js
 │
-├── DESIGN.md
-├── ARCHITECTURE.md
-├── CLAUDE.md
-└── ROADMAP.md
+├── CLAUDE.md                   # AI assistant instructions
+├── DESIGN.md                   # Game design document
+├── ARCHITECTURE.md             # This file
+└── ROADMAP.md                  # Development roadmap
 ```
 
 ---
@@ -83,36 +98,36 @@ MojiBeats/
 ### 1. Audio Pipeline
 
 ```
-[MP3 File / YouTube URL]
+[MP3 File Upload / Drag-and-Drop]
         │
         ▼
   AudioManager.js
   - Loads audio file into AudioBuffer (Web Audio API)
   - Creates AudioContext, source nodes, analyser nodes
-  - Handles playback (play, pause, stop, seek)
+  - Handles playback (play, pause, stop)
+  - Exposes currentTime via AudioContext for precise sync
   - Exposes real-time frequency data for reactive background
         │
         ▼
   BeatDetector.js
-  - Takes AudioBuffer as input
+  - Takes AudioBuffer channel data + sample rate
   - Performs offline analysis:
-    1. Split audio into frames (window size ~1024 samples)
-    2. Compute FFT per frame → spectral data
-    3. Compute spectral flux (difference between consecutive frames)
-    4. Apply thresholding to find onset peaks
-    5. Estimate BPM from onset intervals
-    6. Quantize onsets to BPM grid
-  - Outputs: array of beat timestamps (in seconds)
+    1. Compute energy in windowed frames
+    2. Compute spectral flux (energy differences)
+    3. Apply adaptive thresholding to find onset peaks
+    4. Estimate BPM from onset intervals
+  - Outputs: array of beat timestamps (seconds) + estimated BPM
         │
         ▼
   BeatmapGenerator.js
-  - Takes beat timestamps + play area dimensions
+  - Takes beat timestamps + BPM + minSpacing (difficulty)
+  - Filters beats by minimum spacing (Easy=0.8s, Normal=0.4s, Hard=0.2s)
   - For each beat:
-    - Assigns a random emoji from the emoji pool
-    - Assigns a random position (avoiding edges, HUD, recent positions)
-    - Assigns a target color (rotating through palette)
-    - Calculates spawn time = beat time - grow duration
-  - Outputs: Beatmap object (array of spawn events)
+    - Assigns random emoji from pool
+    - Assigns position with spatial proximity (close beats → nearby positions)
+    - Assigns target color (rotating through palette)
+    - Calculates spawnTime = beatTime - GROW_DURATION
+  - Outputs: array of spawn events
 ```
 
 ### 2. Game Loop (GameplayScene)
@@ -120,66 +135,72 @@ MojiBeats/
 ```
 Per frame (requestAnimationFrame via Phaser):
   │
-  ├─ Get current audio time
+  ├─ Get current audio time (AudioContext.currentTime)
   │
-  ├─ Check beatmap for emojis that should spawn now
-  │   └─ Spawn EmojiTarget at position, begin grow animation
+  ├─ Trigger beat pulses on BackgroundReactive
+  │
+  ├─ Spawn due EmojiTargets from beatmap
+  │   └─ Create emoji + outline, begin grow animation
   │
   ├─ Update active EmojiTargets
-  │   ├─ Scale up toward perfect size
-  │   ├─ If past hit window → trigger miss
-  │   └─ If at perfect size → show ring pulse (ready indicator)
+  │   ├─ Scale up toward full size
+  │   ├─ Update urgency tint (lavender → purple → pink → red)
+  │   ├─ Ramp outline alpha (0.5 → 1.0)
+  │   └─ At full size → ring pulse (ready indicator)
   │
-  ├─ Check for player input (InputHandler)
-  │   ├─ Is cursor over an active emoji?
-  │   ├─ Is key pressed (Z/X)?
-  │   ├─ Is emoji within hit window?
-  │   │   ├─ YES → TimingJudge evaluates (Perfect/Great/Good)
-  │   │   │        ScoreSystem updates, combo increments
-  │   │   │        ParticleBurst plays, ComboText spawns
-  │   │   │        HealthSystem heals if combo milestone
-  │   │   └─ NO  → Too early, ignore input
-  │   └─ No emoji under cursor → ignore input
+  ├─ Expire missed targets (past hit window)
+  │   └─ Miss → damage, bleed particles, combo reset
   │
-  ├─ Update effects (particles, combo text, bleeds)
+  ├─ Handle player input (InputHandler)
+  │   ├─ Cursor over active emoji + key pressed?
+  │   ├─ TimingJudge evaluates (Perfect/Great/Good/Miss)
+  │   ├─ ScoreSystem updates score + combo
+  │   ├─ ParticleBurst + ComboText effects
+  │   ├─ HealthSystem heals on combo milestones
+  │   └─ PerfectFlash confetti on perfect hits
   │
-  ├─ Update BackgroundReactive (pulse with audio data)
+  ├─ Update BackgroundReactive (pulse with audio energy)
   │
-  ├─ Check HealthSystem
-  │   └─ If HP <= 0 → transition to GameOverScene
+  ├─ Check HealthSystem: HP <= 0 → GameOverScene
   │
-  └─ Check if song ended
-      └─ If yes and HP > 0 → transition to VictoryScene
+  └─ Check song ended: HP > 0 → VictoryScene
 ```
 
 ### 3. EmojiTarget Lifecycle
 
 ```
-SPAWNED (invisible, scale=0)
+GROWING (scale 0→1, alpha 0→1, outline lavender→red)
     │
-    ▼  (growing over ~1.0-1.5 seconds)
-GROWING (scaling up, increasing opacity)
-    │
-    ▼  (reaches target size at beat time)
-ACTIVE (at perfect size, ring pulse plays)
+    ▼  (reaches full size at beat time)
+ACTIVE (ring pulse plays, outline fully red + opaque)
     │
     ├─── HIT → ParticleBurst + ComboText + destroy
     │
-    └─── MISS (window passed) → ShootAtHealthBar + FadeIntoBg + destroy
+    └─── MISS (past window) → fade out + HealthBleed + destroy
 ```
 
-### 4. Input System
+### 4. Urgency Gradient System
 
-- Phaser's built-in pointer tracking for cursor position.
-- Keyboard listener for Z and X keys.
-- On keydown:
-  - Check all active EmojiTargets.
-  - Find the one closest to cursor (within hitbox radius).
-  - Pass to TimingJudge for window evaluation.
-- Hitbox: based on the emoji's silhouette outline bounding box.
-- Only one emoji can be hit per keypress (closest to cursor wins).
+The outline tint shifts through a multi-stop gradient as the emoji grows:
 
-### 5. Storage Layer
+| Progress | Color | Meaning |
+|----------|-------|---------|
+| 0.0–0.3 | Lavender (#c4b5fd) | Just spawned, calm |
+| ~0.55 | Purple (#9b7be8) | Growing, so-so |
+| ~0.79 | Pink (#ec4899) | Getting close |
+| 1.0 | Red (#f51d42) | Imminent — perfect beat moment |
+
+Outline alpha also ramps 0.5→1.0 so imminent beats are more vivid. This makes overlapping beats visually distinguishable.
+
+### 5. Input System
+
+- Phaser pointer tracking for cursor position.
+- Keyboard listener for SPACE, Z, and X keys.
+- On keypress: find closest active emoji under cursor within hitbox radius.
+- Pass to TimingJudge for window evaluation.
+- Only one emoji hit per keypress (closest to cursor wins).
+
+### 6. Storage Layer
 
 **SongLibrary.js (IndexedDB)**
 ```
@@ -187,10 +208,9 @@ Database: MojiBeats
   Store: songs
     Key: auto-increment ID
     Value: {
-      id, title, artist, bpm,
+      id, title, bpm, emoji,
       audioBlob (Blob),
-      emoji (random assigned icon),
-      dateAdded, playCount
+      beatCount, dateAdded, playCount
     }
 ```
 
@@ -199,18 +219,29 @@ Database: MojiBeats
 Key: mojibeats_scores
 Value: {
   [songId]: {
-    bestScore, bestCombo, bestAccuracy, grade, plays
+    bestScore, maxCombo, accuracy, grade
   }
 }
+```
 
-Key: mojibeats_settings
-Value: {
-  keyBind1: 'z',
-  keyBind2: 'x',
-  musicVolume: 0.8,
-  sfxVolume: 0.6,
-  growDuration: 1.2
-}
+### 7. Theme System
+
+All accent colors are centralized in `config.js` under `THEME`:
+- `THEME.PRIMARY` — CSS color string (#a78bfa, lavender)
+- `THEME.PRIMARY_HOVER` — darker hover state (#8b5cf6)
+- `THEME.PRIMARY_HEX` — Phaser hex number (0xa78bfa)
+
+Used by: titles, buttons, combo text, countdown, particles, confetti, health bleed. Sticky note colors are separate (per-note pastel palette in `STICKY_NOTE.COLORS`).
+
+### 8. Retry Flow
+
+Results pass `minSpacing` through the chain so Retry replays at the same difficulty:
+```
+GameplayScene.getResults() → { ..., minSpacing }
+    → VictoryScene / GameOverScene
+        → Retry button passes { retrySongId, retryMinSpacing }
+            → SongSelectScene.init() detects retry data
+                → auto-calls playSavedSong(id, { minSpacing })
 ```
 
 ---
@@ -218,18 +249,18 @@ Value: {
 ## Phaser Configuration
 
 ```js
-const config = {
-    type: Phaser.AUTO,          // WebGL with Canvas fallback
+{
+    type: Phaser.AUTO,
     width: 1280,
     height: 720,
     parent: 'game-container',
-    backgroundColor: '#0a0a0f',
+    backgroundColor: '#1a1a2e',
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     scene: [BootScene, SongSelectScene, GameplayScene, GameOverScene, VictoryScene]
-};
+}
 ```
 
 ---
@@ -238,36 +269,25 @@ const config = {
 
 ### Audio Sync
 - Use `AudioContext.currentTime` for precise timing, NOT `Date.now()` or Phaser's clock.
-- Schedule emoji spawns relative to audio start time.
-- Account for audio decode latency on first play.
+- Emoji spawn time = beat timestamp - grow duration.
+- All gameplay timing derived from audio, not frames.
 
 ### Performance
-- Particle effects use Phaser's built-in particle emitter (GPU-accelerated).
-- Limit max active particles (~200 at a time).
-- Object pooling for EmojiTargets and particles to reduce GC pressure.
-- Emoji rendering: render emoji text to Phaser textures on boot, reuse cached textures.
+- Emoji textures pre-rendered to canvas at boot (EmojiCache), never during gameplay.
+- Doodle emoji textures rendered to canvas once, reused across scenes.
+- Particle effects use manual tweens (not Phaser particle emitter) for control.
+- Object cleanup on scene transitions and BackgroundReactive.destroy().
 
-### YouTube Audio
-- YouTube audio extraction requires a backend proxy or third-party API.
-- Options to evaluate:
-  - Server-side: lightweight proxy that extracts audio stream URL.
-  - Client-side: limited options due to CORS.
-- For v1: may defer YouTube support and focus on MP3 upload.
-- Placeholder: YouTubeLoader.js with interface ready, implementation TBD.
+### Emoji Rendering & Outline Generation
+- At boot, for each emoji in the pool:
+  1. Render emoji to off-screen canvas → Phaser texture (filled version).
+  2. Extract alpha channel, dilate it, subtract original → outline border pixels.
+  3. Cache both textures (filled + outline) for reuse.
+- Outlines are white silhouettes tinted at runtime via `setTint()`.
+- Doodle background emojis use the same canvas approach with pixel-trimming to prevent clipping.
 
 ### Browser Compatibility
 - Target: modern browsers (Chrome, Firefox, Edge, Safari).
 - Web Audio API: supported in all modern browsers.
 - Phaser 3: broad compatibility.
 - IndexedDB: supported everywhere, with ~50MB+ storage per origin.
-
-### Emoji Rendering & Outline Generation
-- System emojis vary across OS/browser.
-- At boot, for each emoji in the pool:
-  1. Render emoji text to an off-screen canvas → create a Phaser texture (the "filled" version).
-  2. Extract the alpha channel from the canvas pixel data.
-  3. Generate an **outline texture** by edge-detecting the alpha (dilate alpha → subtract original → left with border pixels only).
-  4. Tint the outline with the assigned target color (pink, purple, blue, green, etc.).
-  5. Cache both textures (filled + outline) for reuse during gameplay.
-- The outline is the **emoji's own silhouette shape**, not a generic circle.
-- This also enables pixel color sampling for the particle disintegration effect.

@@ -2,16 +2,16 @@
 
 ## Phase Overview
 
-| Phase | Name                    | Goal                                        |
-|-------|------------------------|---------------------------------------------|
-| 1     | Foundation             | Phaser setup, project scaffold, basic scene flow |
-| 2     | Audio Engine           | MP3 loading, playback, beat detection        |
-| 3     | Core Gameplay          | Emoji targets, input, timing, basic hit/miss |
-| 4     | Combat & Health        | Health system, damage, combo healing, game over |
-| 5     | Visual Effects         | Particle burst, bleed, combo text, reactive bg |
-| 6     | Song Library           | IndexedDB storage, upload flow, song select UI |
-| 7     | Polish & Juice         | Animations, transitions, scoring, grade system |
-| 8     | YouTube Support        | YouTube link audio extraction (stretch goal)  |
+| Phase | Name                    | Status | Goal                                        |
+|-------|------------------------|--------|---------------------------------------------|
+| 1     | Foundation             | Done   | Phaser setup, project scaffold, basic scene flow |
+| 2     | Audio Engine           | Done   | MP3 loading, playback, beat detection        |
+| 3     | Core Gameplay          | Done   | Emoji targets, input, timing, basic hit/miss |
+| 4     | Combat & Health        | Done   | Health system, damage, combo healing, game over |
+| 5     | Visual Effects         | Done   | Particle burst, bleed, combo text, reactive bg |
+| 6     | Song Library           | Done   | IndexedDB storage, upload flow, song select UI |
+| 7     | Polish & Juice         | Done   | Animations, transitions, scoring, grade system |
+| 8     | YouTube Support        | —      | YouTube link audio extraction (stretch goal)  |
 
 ---
 
@@ -19,19 +19,17 @@
 
 **Goal**: Get a running Phaser app with navigable scenes.
 
-- [ ] Initialize project with Vite + npm
-- [ ] Install Phaser 3
-- [ ] Create project folder structure (`src/scenes/`, `src/audio/`, etc.)
-- [ ] Set up `main.js` with Phaser config
-- [ ] Create `config.js` with game constants
-- [ ] Implement `BootScene` — minimal preload
-- [ ] Implement `SongSelectScene` — placeholder layout
-- [ ] Implement `GameplayScene` — empty scene with dark background
-- [ ] Implement `GameOverScene` — placeholder layout
-- [ ] Implement `VictoryScene` — placeholder layout
-- [ ] Verify scene transitions work (song select → gameplay → game over/victory)
-
-**Deliverable**: Clickable flow through all screens in the browser.
+- [x] Initialize project with Vite + npm
+- [x] Install Phaser 3
+- [x] Create project folder structure (`src/scenes/`, `src/audio/`, etc.)
+- [x] Set up `main.js` with Phaser config
+- [x] Create `config.js` with game constants
+- [x] Implement `BootScene` — font preloading and emoji texture caching
+- [x] Implement `SongSelectScene` — notebook-themed layout
+- [x] Implement `GameplayScene` — full gameplay scene
+- [x] Implement `GameOverScene` — results with animated stats
+- [x] Implement `VictoryScene` — celebratory results screen
+- [x] Verify scene transitions work (song select → gameplay → game over/victory)
 
 ---
 
@@ -39,19 +37,18 @@
 
 **Goal**: Load an MP3, play it, and detect beats.
 
-- [ ] Implement `AudioManager.js`
-  - [ ] Load MP3 file from user input into AudioBuffer
-  - [ ] Play / pause / stop controls
-  - [ ] Expose `currentTime` for frame-accurate sync
-  - [ ] Create AnalyserNode for real-time frequency data
-- [ ] Implement `BeatDetector.js`
-  - [ ] Offline audio analysis (FFT, spectral flux)
-  - [ ] Onset detection with adaptive thresholding
-  - [ ] BPM estimation
-  - [ ] Output: array of beat timestamps
-- [ ] Test: upload an MP3, log detected beats to console, verify they align with the music
-
-**Deliverable**: Upload an MP3 → console shows beat timestamps that match the actual beats.
+- [x] Implement `AudioManager.js`
+  - [x] Load MP3 file from user input into AudioBuffer
+  - [x] Play / pause / stop controls
+  - [x] Expose `currentTime` for frame-accurate sync
+  - [x] Create AnalyserNode for real-time frequency data
+- [x] Implement `BeatDetector.js`
+  - [x] Offline audio analysis (FFT, spectral flux)
+  - [x] Onset detection with adaptive thresholding
+  - [x] BPM estimation
+  - [x] Output: array of beat timestamps
+- [x] Implement `SFX.js`
+  - [x] Procedural hit, miss, and combo sounds via Web Audio oscillators
 
 ---
 
@@ -59,28 +56,25 @@
 
 **Goal**: Emojis appear on beat, player can click them.
 
-- [ ] Implement `BeatmapGenerator.js`
-  - [ ] Convert beat timestamps to spawn events
-  - [ ] Random position assignment (with spacing rules)
-  - [ ] Random emoji + color assignment
-- [ ] Implement `EmojiTarget.js`
-  - [ ] Grow animation (scale 0 → 1 over grow duration)
-  - [ ] Target outline rendering
-  - [ ] Hit detection (cursor within radius + key pressed)
-  - [ ] State machine: GROWING → ACTIVE → HIT/MISSED
-- [ ] Implement `InputHandler.js`
-  - [ ] Track mouse position
-  - [ ] Listen for Z/X keypresses
-  - [ ] Find nearest emoji under cursor
-  - [ ] Trigger hit evaluation
-- [ ] Implement `TimingJudge.js`
-  - [ ] Evaluate timing offset → Perfect / Great / Good / Miss
-- [ ] Integrate into `GameplayScene`:
-  - [ ] Start audio, spawn emojis per beatmap
-  - [ ] Handle input → evaluate hits
-  - [ ] Basic feedback (just remove emoji on hit for now)
-
-**Deliverable**: Play an MP3, emojis spawn and grow on beat, click them to destroy.
+- [x] Implement `BeatmapGenerator.js`
+  - [x] Convert beat timestamps to spawn events
+  - [x] Random position assignment with spatial proximity (close beats spawn near each other)
+  - [x] Random emoji + color assignment
+  - [x] Configurable minimum spacing (difficulty-driven)
+- [x] Implement `EmojiTarget.js`
+  - [x] Grow animation (scale 0 → 1 over grow duration)
+  - [x] Canvas-rendered emoji textures with silhouette outlines (EmojiCache)
+  - [x] Multi-stop urgency color gradient (lavender → purple → pink → red)
+  - [x] Outline alpha ramps from 0.5 → 1.0 as beat approaches
+  - [x] Ring pulse animation at perfect beat time
+  - [x] State machine: GROWING → ACTIVE → HIT/MISSED
+- [x] Implement `InputHandler.js`
+  - [x] Track mouse position
+  - [x] Listen for SPACE/Z/X keypresses
+  - [x] Find nearest emoji under cursor
+  - [x] Trigger hit evaluation
+- [x] Implement `TimingJudge.js`
+  - [x] Evaluate timing offset → Perfect / Great / Good / Miss
 
 ---
 
@@ -88,30 +82,20 @@
 
 **Goal**: The game fights back. Health system creates win/lose conditions.
 
-- [ ] Implement `HealthSystem.js`
-  - [ ] HP tracking (0-100%)
-  - [ ] Take damage on miss
-  - [ ] Heal on combo milestones
-  - [ ] Game over trigger (HP <= 0)
-- [ ] Implement `ScoreSystem.js`
-  - [ ] Score calculation (base points * combo multiplier)
-  - [ ] Combo counter (increment on hit, reset on miss)
-  - [ ] Track accuracy (hits / total notes)
-  - [ ] Track max combo
-- [ ] Implement `HealthBar.js` (UI component)
-  - [ ] Gradient fill bar at top center
-  - [ ] Animate width changes smoothly
-- [ ] Miss behavior:
-  - [ ] Emoji shoots toward health bar (tween animation)
-  - [ ] Emoji fades into background
-- [ ] Integrate with GameplayScene:
-  - [ ] Wire miss → damage → health bar update
-  - [ ] Wire combo → heal → health bar update
-  - [ ] HP 0 → transition to GameOverScene
-  - [ ] Song end + HP > 0 → transition to VictoryScene
-- [ ] Pass score data to GameOverScene/VictoryScene
-
-**Deliverable**: Full game loop — play, survive or die, see results.
+- [x] Implement `HealthSystem.js`
+  - [x] HP tracking (0-100)
+  - [x] Take damage on miss (7 HP)
+  - [x] Heal on combo milestones (5 HP every 10 combo)
+  - [x] Game over trigger (HP <= 0)
+- [x] Implement `ScoreSystem.js`
+  - [x] Score calculation (Perfect 300, Great 200, Good 100)
+  - [x] Combo counter (increment on hit, reset on miss)
+  - [x] Weighted accuracy tracking by judgment tier
+  - [x] Track max combo
+- [x] Implement `HealthBar.js` (UI component)
+  - [x] Gradient fill bar at top center
+  - [x] Animate width changes smoothly
+  - [x] Visual damage flash and heal glow
 
 ---
 
@@ -119,28 +103,15 @@
 
 **Goal**: Make it feel satisfying and pretty.
 
-- [ ] Implement `ParticleBurst.js`
-  - [ ] On hit: emoji shatters into pixel particles
-  - [ ] Particles burst outward, fade, drift with gravity
-  - [ ] Sample colors from emoji texture
-- [ ] Implement `HealthBleed.js`
-  - [ ] On miss impact: particles drip from health bar
-  - [ ] Pink/purple bleed particles
-- [ ] Implement `ComboText.js`
-  - [ ] "COMBO xN" text near killed emoji
-  - [ ] Float upward + fade out
-  - [ ] Color matches target color
-- [ ] Implement `HealEffect.js`
-  - [ ] Green glow pulse on health bar
-  - [ ] "+HP" floating text
-- [ ] Implement `BackgroundReactive.js`
-  - [ ] Radial gradient pulses on beat
-  - [ ] Subtle visualizer bars at bottom
-  - [ ] Intensity scales with audio energy
-- [ ] Add screen shake on Perfect hits (subtle, brief)
-- [ ] Ring pulse animation on emoji when at perfect size
-
-**Deliverable**: Game looks and feels satisfying. Kills are crunchy, misses hurt.
+- [x] Implement `ParticleBurst.js` — emoji shatters into particles on hit
+- [x] Implement `HealthBleed.js` — particles drip from health bar on miss
+- [x] Implement `ComboText.js` — floating "COMBO xN" near killed emoji
+- [x] Implement `BackgroundReactive.js` — music-reactive purple pulse on notebook grid
+- [x] Implement `NotebookBackground.js` — shared notebook grid + emoji doodle backgrounds
+- [x] Implement `Confetti.js` — victory confetti shower
+- [x] Implement `PerfectFlash.js` — light confetti on perfect hits
+- [x] Implement `PageFlip.js` — page-flip scene transitions
+- [x] Ring pulse animation on emoji at perfect beat time
 
 ---
 
@@ -148,26 +119,22 @@
 
 **Goal**: Persistent song storage and polished song select screen.
 
-- [ ] Implement `SongLibrary.js`
-  - [ ] IndexedDB setup (create/open database)
-  - [ ] Save uploaded MP3 (blob + metadata)
-  - [ ] List all saved songs
-  - [ ] Delete song
-- [ ] Implement `ScoreStore.js`
-  - [ ] Save best score / combo / accuracy per song
-  - [ ] Load scores for display
-- [ ] Polish `SongSelectScene`
-  - [ ] Render song cards from library data
-  - [ ] MP3 drag-and-drop upload
-  - [ ] File picker fallback
-  - [ ] Show BPM on card (from beat detection)
-  - [ ] Show best score on card
-  - [ ] Delete song option
-- [ ] Upload flow:
-  - [ ] User uploads MP3 → detect beats → save to library → show in list
-  - [ ] Select song → start gameplay
-
-**Deliverable**: Full upload → save → replay flow working.
+- [x] Implement `SongLibrary.js`
+  - [x] IndexedDB setup (create/open database)
+  - [x] Save uploaded MP3 (blob + metadata)
+  - [x] List all saved songs
+  - [x] Delete song
+  - [x] Increment play count
+- [x] Implement `ScoreStore.js`
+  - [x] Save best score / combo / accuracy / grade per song
+  - [x] Grade calculation (S/A/B/C/D based on weighted accuracy)
+- [x] Polish `SongSelectScene`
+  - [x] Sticky note song library (StickyNote.js component)
+  - [x] MP3 drag-and-drop upload
+  - [x] File picker fallback
+  - [x] Song details on hover (BPM, best score, grade)
+  - [x] Delete song from sticky note
+  - [x] Bouncing 🎵 loading spinner during analysis
 
 ---
 
@@ -175,32 +142,18 @@
 
 **Goal**: Everything feels finished and cohesive.
 
-- [ ] Scene transitions (fade in/out between screens)
-- [ ] Polish GameOverScene
-  - [ ] Animated stat counters (count up from 0)
-  - [ ] Grade calculation (S/A/B/C/D)
-  - [ ] Retry button → replay same song
-  - [ ] Song Select button → back to library
-- [ ] Polish VictoryScene
-  - [ ] Same as game over but celebratory
-  - [ ] Confetti / celebration particles
-- [ ] Add subtle SFX (hit sound, miss sound, combo milestone sound)
-  - [ ] Use Web Audio API oscillator or short audio clips
-- [ ] Settings: key rebinding, volume controls
-- [ ] Responsive scaling (Phaser Scale.FIT)
-- [ ] Loading states (while analyzing audio)
-- [ ] Beatmap difficulty & balancing
-  - [ ] Filter onsets to BPM grid (quarter notes as base)
-  - [ ] Selectively add strong off-beat onsets for variety
-  - [ ] Enforce minimum spacing between spawn events
-  - [ ] Energy-based threshold (keep strongest N% of peaks)
-  - [ ] Difficulty curve: ramp density over the song
-- [ ] Edge case handling:
-  - [ ] Very short songs
-  - [ ] Songs with no detectable beats
-  - [ ] Very fast BPM (cap note density)
-
-**Deliverable**: Release-ready polished game.
+- [x] Page-flip scene transitions
+- [x] Animated stat counters on results screens (count up from 0)
+- [x] Grade system (S/A/B/C/D) with weighted accuracy
+- [x] Retry button replays same song at same difficulty
+- [x] Difficulty selection (Easy / Normal / Hard via minSpacing)
+- [x] Lavender theme (centralized `THEME` constant)
+- [x] Multi-stop urgency gradient (lavender → purple → pink → red)
+- [x] Background emoji doodles on all scenes (canvas-rendered, no clipping)
+- [x] Pause overlay (ESC to pause/resume, quit to menu)
+- [x] SFX (hit, miss, combo milestone via Web Audio oscillators)
+- [x] Loading spinner during song analysis
+- [x] Responsive scaling (Phaser Scale.FIT)
 
 ---
 
@@ -219,9 +172,6 @@
   - [ ] YouTube URL input field
   - [ ] Loading state while fetching
   - [ ] Save to library after first play
-- [ ] Test with various YouTube links
-
-**Deliverable**: Paste a YouTube link → play the song as a rhythm game.
 
 ---
 

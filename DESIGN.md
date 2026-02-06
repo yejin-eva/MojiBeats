@@ -2,7 +2,7 @@
 
 ## Overview
 
-MojiBeats is a browser-based rhythm game inspired by osu! where players fight emoji enemies by clicking them in time with the music. Beatmaps are procedurally generated from any audio source — upload an MP3 or paste a YouTube link and play instantly.
+MojiBeats is a browser-based rhythm game inspired by osu! where players fight emoji enemies by clicking them in time with the music. Beatmaps are procedurally generated from any uploaded MP3 — upload a song and play instantly.
 
 ## Core Concept
 
@@ -17,18 +17,31 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### Emoji Spawning & Timing
 
-- Emojis spawn at **random positions** on the play area.
+- Emojis spawn at **random positions** on the play area (with spatial proximity — close beats spawn near each other).
 - Each emoji is tied to a **beat** in the music (detected via audio analysis).
 - On spawn, the emoji is **invisible/tiny** and **grows gradually** toward its full size.
 - The emoji reaches **perfect size exactly on the beat** — this is the **hit window**.
 - A **target outline** (the emoji's own silhouette shape, not a circle) shows the final form the emoji will fill. The outline is rendered by extracting the emoji's alpha channel edge at boot time.
 - The growth acts as the timing indicator (replaces osu!'s shrinking approach circle).
 
+### Urgency Gradient
+
+As each emoji grows, its outline shifts through a multi-stop color gradient to indicate timing urgency:
+
+| Progress | Color | Visual Cue |
+|----------|-------|------------|
+| 0–30% | Lavender | Just spawned, calm |
+| ~55% | Purple | Growing, so-so |
+| ~80% | Pink | Getting close |
+| 100% | Red | Imminent — hit now! |
+
+The outline also becomes more opaque (0.5 → 1.0 alpha) as the beat approaches, making imminent beats visually prominent even when overlapping.
+
 ### Input
 
 - **Mouse + Keyboard** (osu!-style PC controls):
   - Move cursor to hover over the emoji.
-  - Press a keyboard key (`Z` or `X`) to "shoot" it.
+  - Press a keyboard key (`SPACE`, `Z`, or `X`) to "shoot" it.
 - The hit must occur **within the hit window** (a time range around the perfect beat moment).
 - Hitting **too early** (emoji still small, outside window) = no effect, nothing happens.
 - Hitting **too late** or **not at all** = miss.
@@ -37,35 +50,29 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 | Timing       | Range (ms from perfect) | Result         |
 |-------------|------------------------|----------------|
-| Perfect     | +/- 30ms               | Full score, full combo |
-| Great       | +/- 80ms               | Reduced score, combo continues |
-| Good        | +/- 120ms              | Minimal score, combo continues |
-| Miss        | > 120ms or no input    | No score, combo breaks, take damage |
-
-> Note: Exact ms values are tunable. These are starting points.
+| Perfect     | ±50ms                  | Full score, full combo |
+| Great       | ±130ms                 | Reduced score, combo continues |
+| Good        | ±200ms                 | Minimal score, combo continues |
+| Miss        | >200ms or no input     | No score, combo breaks, take damage |
 
 ### Health System
 
 - Player has a **health bar** displayed at **top center** of screen.
-- Starting HP: 100%.
-- **On miss**: The emoji "attacks" — it shoots toward the health bar, causing damage.
-  - The health bar visually "bleeds" with a particle effect (pink/purple particles dripping down).
-  - The attacking emoji fades into the background after shooting.
-  - Damage per miss: ~5-8% HP (tunable based on difficulty).
+- Starting HP: 100.
+- **On miss**: Health bar takes damage (7 HP per miss).
+  - The health bar visually "bleeds" with particle effects (lavender/purple particles dripping down).
+  - The missed emoji fades out.
 - **On combo**: Sustained combos **heal** the player.
-  - Every N consecutive hits (e.g., every 10 combo) restores a small amount of HP.
-  - A green glow + "+HP COMBO HEAL" text appears on the health bar.
+  - Every 10 consecutive hits restores 5 HP.
 - **HP reaches 0**: Game over. The song stops.
 
 ### Combo System
 
 - Each successful hit increments the combo counter.
-- **Combo text** (e.g., "COMBO x7") appears **near the killed emoji** at a slight random offset.
+- **Combo text** (e.g., "7x combo") appears **near the killed emoji** at a slight random offset.
 - Combo text floats upward and fades out.
 - Missing a note **resets the combo** to 0.
-- Combo milestones (10x, 25x, 50x, 100x) trigger:
-  - HP heal
-  - Visual flair (screen flash, extra particles, etc.)
+- Combo milestones (every 10x) trigger HP heal + SFX.
 
 ### Scoring
 
@@ -74,8 +81,20 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
   - Great: 200 pts
   - Good: 100 pts
   - Miss: 0 pts
-- Score multiplied by current combo count (combo acts as multiplier).
-- Final score displayed on game over screen.
+- Final score displayed on results screen.
+- Accuracy is weighted by judgment tier (Perfect > Great > Good) to reflect hit quality.
+
+### Difficulty
+
+Three difficulty levels selectable per song from the sticky note UI:
+
+| Difficulty | Min Beat Spacing | Color |
+|-----------|-----------------|-------|
+| Easy | 0.8s | Green |
+| Normal | 0.4s | Yellow |
+| Hard | 0.2s | Red |
+
+Higher difficulty = more beats pass the filter = denser beatmap.
 
 ---
 
@@ -84,51 +103,55 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 ### Art Style
 
 - **Notebook / sticker theme** — the game looks like a notebook page covered in emoji stickers.
-- **Background**: Off-white (#f8f8f8) with a faint light-blue grid and a single horizontal light-red margin line near the top, like ruled notebook paper.
-- **Font**: "Friendly Scribbles" by @kmlgames — a handwritten-style font used for all UI text (titles, scores, judgments, countdowns) to reinforce the notebook/doodle aesthetic.
-- **Emojis are stickers** — native system emojis rendered as if stuck onto notebook paper. Silhouette outlines give them a sticker-edge feel.
+- **Background**: Off-white (#f8f8f8) with a faint light-blue grid and a single light-red margin line, like ruled notebook paper.
+- **Scattered emoji doodles**: Faint music-themed emojis (🎵🎶🎸🎤🎹⭐🎧🎺🎻🥁) scattered across all scene backgrounds at low opacity (0.2), rendered via canvas textures to avoid clipping.
+- **Font**: "Friendly Scribbles" — a handwritten-style font used for all UI text.
+- **Theme color**: Lavender (#a78bfa) — centralized as `THEME` constant for titles, buttons, combo text, countdown, and particles.
 - Light pastel palette throughout. No dark backgrounds.
 
 ### Emoji Enemies
 
 - Different emojis appear per beat for visual variety.
-- Emoji pool examples: `👾 👻 🤖 😈 🎃 💀 👹 🐉 🦠 👽 🔥 💣 ☠️ 🕷️ 🦇`
+- Emoji pool: `👾 👻 🤖 😈 🎃 💀 👹 🐉 🦠 👽 🔥 💣 ☠️ 🕷️ 🦇`
 - Emojis are purely cosmetic — no gameplay difference between them.
-- Each emoji gets a **colored silhouette outline** (pink, purple, blue, green, etc.) in the shape of that specific emoji — not a generic circle.
+- Each emoji gets a **colored silhouette outline** in the shape of that specific emoji — not a generic circle.
+- Outlines are pre-rendered at boot by extracting and dilating the emoji's alpha channel.
 
 ### Kill Effect (Particle Disintegration)
 
 - On hit, the emoji **shatters into tiny pixel particles**.
-- Particles burst outward in all directions (sand/dust explosion feel).
-- Particle colors are sampled from the emoji's palette.
+- Particles burst outward in all directions.
+- Particle colors include the target color + the theme lavender.
 - Particles drift with slight gravity, fading out as they scatter.
-- Subtle screen shake on hit (very brief, ~50ms).
+
+### Perfect Hit Effect
+
+- Light confetti falls briefly from the top of the screen on perfect hits.
 
 ### Miss Effect
 
-- The missed emoji **shoots a projectile toward the health bar**.
-- On impact, the health bar **bleeds** — small particles drip/scatter downward from the hit point.
-- The emoji that missed **fades into the background** (becomes transparent, drifts, disappears).
+- The missed emoji **fades out**.
+- The health bar **bleeds** — small particles drip/scatter downward.
 
 ### Health Bar
 
 - Position: **top center**.
-- Gradient fill: pink -> purple -> blue.
-- Outer glow matching the fill gradient.
+- Gradient fill with animated width changes.
 - On damage: bleed particles + brief red flash.
-- On heal: green glow pulse + "+HP" text.
+- On heal: green glow pulse.
 
 ### Background (Gameplay)
 
-- **Notebook paper**: off-white base with faint light-blue grid lines (horizontal and vertical, ~28px spacing) and a single light-red horizontal margin line near the top.
+- **Notebook paper**: off-white base with faint light-blue grid lines (horizontal and vertical, ~28px spacing) and a single light-red margin line.
+- **Emoji doodles**: faint scattered music emojis behind the grid on all screens.
 - **Reactive to music**: a subtle purple radial pulse breathes with the beat, overlaid on the notebook grid.
 - The notebook grid is static and always visible; only the pulse reacts to audio energy.
 
 ### Combo Counter
 
 - Appears near the killed emoji (random slight offset from emoji position).
-- Shows "COMBO x{N}" with a glow matching the emoji's target color.
-- Floats upward and fades out over ~1 second.
+- Shows "{N}x combo" in theme lavender.
+- Floats upward and fades out.
 
 ---
 
@@ -136,47 +159,48 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### 1. Song Select
 
-- **Notebook background** matching the game's notebook theme (grid lines, margin line).
-- **Title**: "MojiBeats" in handwritten font.
-- **Upload button**: "Upload MP3" button centered below the title. Uploads an MP3, analyzes beats, saves to IndexedDB, and starts gameplay.
+- **Notebook background** matching the game's notebook theme (grid lines, margin line, emoji doodles).
+- **Title**: "MojiBeats" in handwritten font (lavender).
+- **Upload button**: "Upload MP3" button (gray). Also supports drag-and-drop.
+- **Loading spinner**: Bouncing 🎵 emoji appears during audio loading and beat analysis.
 - **Sticky note song library**: Previously uploaded songs appear as overlapping **sticky notes** fanned at the bottom of the screen.
-  - Each note has a random pastel color (yellow, pink, blue, green, purple), a tape strip, the song's emoji, and truncated title.
-  - **Collapsed**: notes overlap in a fan layout at the bottom, showing emoji + title.
-  - **Peeked** (on hover): note slides up, revealing BPM and best score details.
-  - **Selected** (on click): note lifts to center, scales up, straightens, and shows a Play button.
+  - Each note has a random pastel color (yellow, pink, blue, green, purple), the song's emoji, and truncated title.
+  - **Collapsed**: notes overlap in a fan layout at the bottom.
+  - **Peeked** (on hover): note slides up, revealing BPM and best score.
+  - **Selected** (on click): note lifts to center, scales up, shows difficulty buttons (Easy/Normal/Hard) and a delete button.
   - Clicking empty space deselects all notes.
-  - Up to 6 most recent songs are shown.
-- **Two play paths**: upload a new MP3, or click a sticky note to replay a saved song.
-- Songs are **persisted in IndexedDB** (MP3 blob + metadata). Best scores per song are stored in **localStorage**.
-- On return from gameplay, sticky notes reflect updated best scores and grades.
+  - Up to 6 most recent songs shown.
+- Songs persisted in IndexedDB (MP3 blob + metadata). Best scores in localStorage.
+- **Retry routing**: When arriving from Retry, automatically loads and plays the same song at the same difficulty.
 
 ### 2. Gameplay
 
-- See Visual Design section above.
 - **HUD elements**:
   - Health bar: top center
-  - Score: top right
-  - Now playing (song title + artist): top left
-- No pause button in v1 (keep it simple). ESC to quit (returns to song select).
+  - Score: top right (amber)
+  - Combo counter: top right below score (lavender)
+  - Song title: top left
+  - Controls hint: bottom center
+- **Pause**: ESC toggles pause overlay with Resume and Quit to Menu buttons.
+- **Countdown**: 3-2-1 countdown in lavender before song starts.
 
 ### 3. Game Over
 
-- **Light pastel gradient background** (matches song select aesthetic).
-- Floating emoji decorations (low opacity): `😵 💔 🎵 ✨ 🌸 💫`
-- **Centered card** (frosted glass) with:
-  - Emoji row: `😵 💥 🎮`
-  - "Game Over" title
-  - Subtitle: "The emojis got you this time..."
-  - Stats: Score, Max Combo, Accuracy
-  - Buttons: Retry, Song Select
+- **Notebook background** with grid lines and emoji doodles.
+- Emoji row: `😵 💥 🎮`
+- "Game Over" title (red)
+- Subtitle: "The emojis got you this time..."
+- Animated stats: Score, Max Combo, Accuracy (count up from 0)
+- Buttons: Retry (lavender, replays same song+difficulty), Song Select (gray)
 
-### 4. Victory Screen (Song Complete)
+### 4. Victory Screen
 
-- Similar layout to game over but celebratory.
+- **Notebook background** with grid lines, emoji doodles, and confetti shower.
 - Emoji row: `🎉 🏆 ✨`
-- Title: "Song Complete!"
-- Same stats layout.
-- Grade system: S / A / B / C / D based on accuracy.
+- Title: "Song Complete!" (green)
+- Grade system: S / A / B / C / D based on weighted accuracy (bounces in).
+- Animated stats: Score, Max Combo, Accuracy
+- Buttons: Retry (lavender, replays same song+difficulty), Song Select (gray)
 
 ---
 
@@ -184,42 +208,39 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### Audio Sources
 
-1. **MP3 Upload**: User uploads an MP3 file. File is stored locally (IndexedDB or similar) for replay.
-2. **YouTube Link**: User pastes a YouTube URL. Audio is extracted and loaded.
+1. **MP3 Upload**: User uploads an MP3 file (button or drag-and-drop). File is stored in IndexedDB for replay.
 
 ### Procedural Beatmap Generation
 
 - Uses **Web Audio API** for audio analysis.
 - Beat/onset detection pipeline:
   1. Decode audio to raw PCM data.
-  2. Compute spectral flux / energy over time.
-  3. Apply onset detection algorithm to find beat timestamps.
-  4. Filter and quantize to the detected BPM grid.
+  2. Compute energy in windowed frames.
+  3. Compute spectral flux (energy differences between frames).
+  4. Apply adaptive thresholding to find onset peaks.
+  5. Estimate BPM from onset intervals.
 - Each detected beat becomes an emoji spawn point.
-- Spawn positions are randomized within the play area (avoiding edges and HUD).
-- Difficulty scaling: more beats detected = harder map.
-
-### Difficulty
-
-- For v1: single difficulty (auto-generated).
-- Future: difficulty presets that adjust:
-  - Number of beats detected (threshold sensitivity).
-  - Emoji spawn area size.
-  - HP drain per miss.
+- Beats are filtered by minimum spacing (configurable per difficulty level).
+- Spawn positions use spatial proximity — beats close in time spawn near each other.
+- Position avoids edges and HUD elements.
 
 ---
 
 ## Audio & Timing
 
-- All timing is relative to the audio playback position.
-- Emoji spawn time = beat timestamp - grow duration.
-- Grow duration: ~1.0-1.5 seconds (tunable).
-- Game loop syncs with `requestAnimationFrame` but timing checks use audio context time for accuracy.
+- All timing is relative to `AudioContext.currentTime` — never `Date.now()` or Phaser's clock.
+- Emoji spawn time = beat timestamp - grow duration (1.2 seconds).
+- Game loop syncs with `requestAnimationFrame` but timing checks use audio context time.
 
 ---
 
 ## Persistence
 
-- **Song library**: Uploaded MP3s stored in browser IndexedDB.
-- **High scores**: Per-song best score, max combo, best accuracy stored in localStorage.
-- **Settings**: Key bindings, volume, etc. stored in localStorage.
+- **Song library**: Uploaded MP3s stored in browser IndexedDB (blob + metadata: title, BPM, emoji, beat count, play count).
+- **High scores**: Per-song best score, max combo, accuracy, and grade stored in localStorage.
+
+---
+
+## Scene Transitions
+
+All scene transitions use a **page flip** effect — a white overlay sweeps across the screen, matching the notebook theme.
