@@ -12,6 +12,7 @@ import { emitBleed } from '../effects/HealthBleed.js';
 import { showCombo } from '../effects/ComboText.js';
 import BackgroundReactive from '../effects/BackgroundReactive.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { emitPerfectConfetti } from '../effects/PerfectFlash.js';
 import { playHitSound, playMissSound, playComboSound } from '../audio/SFX.js';
 
 export default class GameplayScene extends Phaser.Scene {
@@ -232,7 +233,7 @@ export default class GameplayScene extends Phaser.Scene {
     }
 
     if (tier === 'perfect') {
-      this.cameras.main.shake(50, 0.003);
+      emitPerfectConfetti(this);
     }
     playHitSound();
 
