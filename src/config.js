@@ -66,7 +66,7 @@ export const EMOJI_TEXTURE = {
   FONT_SIZE: 64,
   DILATION_RADIUS: 3,
   FONT_FAMILY: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
-  DISPLAY_SCALE: 1.125
+  DISPLAY_SCALE: 1.5
 };
 
 // Spatial proximity: close beats spawn near each other

@@ -1,24 +1,28 @@
 const PARTICLE_COLORS = [0xff69b4, 0x9b59b6, 0x3498db, 0xfbbf24, 0x34d399, 0xe74c3c];
 
 export function emitBurst(scene, x, y, color) {
-  const count = 12;
+  const count = 30;
 
   for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
-    const speed = 80 + Math.random() * 120;
-    const size = 3 + Math.random() * 4;
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+    const speed = 60 + Math.random() * 180;
+    const size = 2 + Math.random() * 5;
 
-    const particle = scene.add.circle(x, y, size, color || PARTICLE_COLORS[i % PARTICLE_COLORS.length]);
+    const pColor = Math.random() < 0.6
+      ? color
+      : PARTICLE_COLORS[i % PARTICLE_COLORS.length];
+
+    const particle = scene.add.circle(x, y, size, pColor);
     particle.setAlpha(0.9);
 
     scene.tweens.add({
       targets: particle,
       x: x + Math.cos(angle) * speed,
-      y: y + Math.sin(angle) * speed + 40,
+      y: y + Math.sin(angle) * speed + 50,
       alpha: 0,
-      scaleX: 0.2,
-      scaleY: 0.2,
-      duration: 400 + Math.random() * 200,
+      scaleX: 0.1,
+      scaleY: 0.1,
+      duration: 350 + Math.random() * 350,
       ease: 'Power2',
       onComplete: () => particle.destroy()
     });
