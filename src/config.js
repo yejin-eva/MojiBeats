@@ -1,8 +1,8 @@
 // Timing windows (ms from perfect beat)
 export const TIMING = {
-  PERFECT: 30,
-  GREAT: 80,
-  GOOD: 120
+  PERFECT: 50,
+  GREAT: 130,
+  GOOD: 200
 };
 
 // Health system

@@ -6,36 +6,36 @@ describe('TimingJudge', () => {
     expect(judge(0)).toBe(PERFECT);
   });
 
-  it('returns PERFECT within 30ms', () => {
-    expect(judge(29)).toBe(PERFECT);
-    expect(judge(-29)).toBe(PERFECT);
-    expect(judge(30)).toBe(PERFECT);
-    expect(judge(-30)).toBe(PERFECT);
+  it('returns PERFECT within 50ms', () => {
+    expect(judge(49)).toBe(PERFECT);
+    expect(judge(-49)).toBe(PERFECT);
+    expect(judge(50)).toBe(PERFECT);
+    expect(judge(-50)).toBe(PERFECT);
   });
 
-  it('returns GREAT between 31-80ms', () => {
-    expect(judge(31)).toBe(GREAT);
-    expect(judge(-31)).toBe(GREAT);
-    expect(judge(80)).toBe(GREAT);
-    expect(judge(-80)).toBe(GREAT);
+  it('returns GREAT between 51-130ms', () => {
+    expect(judge(51)).toBe(GREAT);
+    expect(judge(-51)).toBe(GREAT);
+    expect(judge(130)).toBe(GREAT);
+    expect(judge(-130)).toBe(GREAT);
   });
 
-  it('returns GOOD between 81-120ms', () => {
-    expect(judge(81)).toBe(GOOD);
-    expect(judge(-81)).toBe(GOOD);
-    expect(judge(120)).toBe(GOOD);
-    expect(judge(-120)).toBe(GOOD);
+  it('returns GOOD between 131-200ms', () => {
+    expect(judge(131)).toBe(GOOD);
+    expect(judge(-131)).toBe(GOOD);
+    expect(judge(200)).toBe(GOOD);
+    expect(judge(-200)).toBe(GOOD);
   });
 
-  it('returns MISS beyond 120ms', () => {
-    expect(judge(121)).toBe(MISS);
-    expect(judge(-121)).toBe(MISS);
+  it('returns MISS beyond 200ms', () => {
+    expect(judge(201)).toBe(MISS);
+    expect(judge(-201)).toBe(MISS);
     expect(judge(500)).toBe(MISS);
   });
 
   it('uses absolute value of offset', () => {
     expect(judge(-15)).toBe(judge(15));
-    expect(judge(-50)).toBe(judge(50));
-    expect(judge(-100)).toBe(judge(100));
+    expect(judge(-75)).toBe(judge(75));
+    expect(judge(-150)).toBe(judge(150));
   });
 });
