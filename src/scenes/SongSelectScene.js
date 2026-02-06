@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 import AudioManager from '../audio/AudioManager.js';
 import { detectBeats, estimateBpm } from '../audio/BeatDetector.js';
+import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 
 export default class SongSelectScene extends Phaser.Scene {
   constructor() {
@@ -10,6 +11,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
+    pageFlipIn(this);
 
     this.drawNotebookGrid();
 
@@ -96,7 +98,9 @@ export default class SongSelectScene extends Phaser.Scene {
         `${file.name}\n${beats.length} beats detected | ~${Math.round(bpm)} BPM`
       );
 
-      this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName: file.name });
+      pageFlipOut(this, () => {
+        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName: file.name });
+      });
     } catch (err) {
       console.error('[MojiBeats] Audio load error:', err);
       this.statusText.setText('Error loading audio. Try another MP3.');

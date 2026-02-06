@@ -11,6 +11,7 @@ import { emitBurst } from '../effects/ParticleBurst.js';
 import { emitBleed } from '../effects/HealthBleed.js';
 import { showCombo } from '../effects/ComboText.js';
 import BackgroundReactive from '../effects/BackgroundReactive.js';
+import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 
 export default class GameplayScene extends Phaser.Scene {
   constructor() {
@@ -26,6 +27,7 @@ export default class GameplayScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
+    pageFlipIn(this);
 
     this.healthState = createHealthState();
     this.scoreState = createScoreState();
@@ -75,7 +77,7 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.input.keyboard.on('keydown-ESC', () => {
       this.stopAudio();
-      this.scene.start(SCENES.SONG_SELECT);
+      pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
     });
 
     if (this.audioManager) {
@@ -252,7 +254,7 @@ export default class GameplayScene extends Phaser.Scene {
 
     if (isDead(this.healthState)) {
       this.stopAudio();
-      this.scene.start(SCENES.GAME_OVER, this.getResults());
+      pageFlipOut(this, () => this.scene.start(SCENES.GAME_OVER, this.getResults()));
     }
   }
 
@@ -287,7 +289,7 @@ export default class GameplayScene extends Phaser.Scene {
 
   endSong() {
     this.cleanupTargets();
-    this.scene.start(SCENES.VICTORY, this.getResults());
+    pageFlipOut(this, () => this.scene.start(SCENES.VICTORY, this.getResults()));
   }
 
   cleanupTargets() {
