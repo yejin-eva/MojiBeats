@@ -1,3 +1,7 @@
+// Game dimensions
+export const GAME_WIDTH = 1280;
+export const GAME_HEIGHT = 720;
+
 // Timing windows (ms from perfect beat)
 export const TIMING = {
   PERFECT: 50,
@@ -93,9 +97,5 @@ export const NOTEBOOK = {
   GRID_SPACING: 28,
   MARGIN_COLOR: 0xf0a0a0,
   MARGIN_ALPHA: 0.5,
-  MARGIN_X: 144
+  MARGIN_X: Math.round(GAME_WIDTH * 0.1125)
 };
-
-// Game dimensions
-export const GAME_WIDTH = 1280;
-export const GAME_HEIGHT = 720;
