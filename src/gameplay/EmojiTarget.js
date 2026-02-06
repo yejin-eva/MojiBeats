@@ -11,14 +11,17 @@ export default class EmojiTarget {
     this.beatTime = event.beatTime;
     this.spawnTime = event.spawnTime;
     this.color = event.color;
+    this.x = event.x;
+    this.y = event.y;
     this.state = STATE_GROWING;
+    this.pulsed = false;
+
+    this.outline = scene.add.circle(event.x, event.y, 36, event.color, 0.3)
+      .setScale(1).setStrokeStyle(2, event.color);
 
     this.text = scene.add.text(event.x, event.y, event.emoji, {
       fontSize: '48px'
     }).setOrigin(0.5).setScale(0).setAlpha(0);
-
-    this.outline = scene.add.circle(event.x, event.y, 36, event.color, 0.3)
-      .setScale(1).setStrokeStyle(2, event.color);
   }
 
   update(currentTime) {
@@ -31,11 +34,26 @@ export default class EmojiTarget {
 
     if (progress >= 1 && this.state === STATE_GROWING) {
       this.state = STATE_ACTIVE;
+      this.ringPulse();
     }
   }
 
-  isHittable(currentTime) {
-    return this.state === STATE_GROWING || this.state === STATE_ACTIVE;
+  ringPulse() {
+    if (this.pulsed) return;
+    this.pulsed = true;
+
+    const ring = this.scene.add.circle(this.x, this.y, 36, this.color, 0)
+      .setStrokeStyle(3, this.color);
+
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: 1.8,
+      scaleY: 1.8,
+      alpha: 0,
+      duration: 400,
+      ease: 'Power2',
+      onComplete: () => ring.destroy()
+    });
   }
 
   getOffsetMs(currentTime) {
@@ -43,8 +61,8 @@ export default class EmojiTarget {
   }
 
   containsPoint(x, y) {
-    const dx = x - this.text.x;
-    const dy = y - this.text.y;
+    const dx = x - this.x;
+    const dy = y - this.y;
     const radius = 36 * this.text.scaleX;
     return dx * dx + dy * dy <= radius * radius;
   }

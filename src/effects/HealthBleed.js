@@ -1,0 +1,30 @@
+import { GAME_WIDTH } from '../config.js';
+
+const BLEED_COLORS = [0xff69b4, 0x9b59b6, 0xc084fc];
+
+export function emitBleed(scene) {
+  const barCenterX = GAME_WIDTH / 2;
+  const barY = 40;
+  const count = 6;
+
+  for (let i = 0; i < count; i++) {
+    const px = barCenterX + (Math.random() - 0.5) * 200;
+    const color = BLEED_COLORS[i % BLEED_COLORS.length];
+    const size = 2 + Math.random() * 3;
+
+    const drop = scene.add.circle(px, barY, size, color);
+    drop.setAlpha(0.8);
+
+    scene.tweens.add({
+      targets: drop,
+      y: barY + 30 + Math.random() * 40,
+      x: px + (Math.random() - 0.5) * 20,
+      alpha: 0,
+      scaleX: 0.3,
+      scaleY: 0.3,
+      duration: 500 + Math.random() * 300,
+      ease: 'Power1',
+      onComplete: () => drop.destroy()
+    });
+  }
+}

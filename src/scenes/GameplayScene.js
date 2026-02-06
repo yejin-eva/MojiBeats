@@ -7,6 +7,10 @@ import { createScoreState, applyHit, applyMiss, getAccuracy } from '../gameplay/
 import EmojiTarget from '../gameplay/EmojiTarget.js';
 import InputHandler from '../gameplay/InputHandler.js';
 import HealthBar from '../ui/HealthBar.js';
+import { emitBurst } from '../effects/ParticleBurst.js';
+import { emitBleed } from '../effects/HealthBleed.js';
+import { showCombo } from '../effects/ComboText.js';
+import BackgroundReactive from '../effects/BackgroundReactive.js';
 
 export default class GameplayScene extends Phaser.Scene {
   constructor() {
@@ -25,6 +29,8 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.healthState = createHealthState();
     this.scoreState = createScoreState();
+
+    this.background = new BackgroundReactive(this);
 
     this.healthBar = new HealthBar(this);
 
@@ -60,6 +66,7 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.beatmap = generateBeatmap(this.beats);
     this.nextSpawnIndex = 0;
+    this.nextBeatIndex = 0;
     this.activeTargets = [];
 
     this.inputHandler = new InputHandler(this, (x, y) => this.handleHit(x, y));
@@ -90,9 +97,21 @@ export default class GameplayScene extends Phaser.Scene {
       return;
     }
 
+    this.background.update(this.audioManager);
+    this.triggerBeatPulses(currentTime);
     this.spawnDueTargets(currentTime);
     this.updateTargets(currentTime);
     this.expireMissedTargets(currentTime);
+  }
+
+  triggerBeatPulses(currentTime) {
+    while (
+      this.nextBeatIndex < this.beats.length &&
+      this.beats[this.nextBeatIndex] <= currentTime
+    ) {
+      this.background.onBeat();
+      this.nextBeatIndex++;
+    }
   }
 
   spawnDueTargets(currentTime) {
@@ -154,20 +173,31 @@ export default class GameplayScene extends Phaser.Scene {
 
     if (result === MISS) return;
 
+    const hitX = closest.x;
+    const hitY = closest.y;
+    const hitColor = closest.color;
+
     closest.hit();
     const idx = this.activeTargets.indexOf(closest);
     if (idx !== -1) this.activeTargets.splice(idx, 1);
 
-    this.onHit(result);
+    this.onHit(result, hitX, hitY, hitColor);
   }
 
-  onHit(tier) {
+  onHit(tier, x, y, color) {
     this.scoreState = applyHit(this.scoreState, tier);
     const prevHp = this.healthState.hp;
     this.healthState = applyComboHeal(this.healthState, this.scoreState.combo);
 
+    emitBurst(this, x, y, color);
+    showCombo(this, x, y, this.scoreState.combo, color);
+
     if (this.healthState.hp > prevHp) {
       this.healthBar.showHeal();
+    }
+
+    if (tier === 'perfect') {
+      this.cameras.main.shake(50, 0.003);
     }
 
     this.healthBar.update(this.healthState.hp);
@@ -183,6 +213,7 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.healthBar.update(this.healthState.hp);
     this.healthBar.showDamage();
+    emitBleed(this);
     this.updateHUD();
     this.showJudgment('Miss', '#ef4444');
 
