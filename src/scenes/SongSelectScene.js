@@ -133,7 +133,7 @@ export default class SongSelectScene extends Phaser.Scene {
     if (this.selectedSongId === null) return;
 
     const hitAny = this.stickyNotes.some((note) => {
-      const bounds = note.bgRect.getBounds();
+      const bounds = note.container.getBounds();
       return bounds.contains(pointer.x, pointer.y);
     });
 

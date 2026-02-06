@@ -22,8 +22,7 @@ export default class StickyNote {
     const { WIDTH, HEIGHT } = STICKY_NOTE;
     const { bg, border, text: textColor } = this.color;
 
-    this.bgRect = this.scene.add.rectangle(0, 0, WIDTH, HEIGHT, Phaser.Display.Color.HexStringToColor(bg).color)
-      .setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(border).color);
+    this.bgRect = this.scene.add.rectangle(0, 0, WIDTH, HEIGHT, Phaser.Display.Color.HexStringToColor(bg).color);
 
     const tapeWidth = 40;
     const tapeHeight = 12;
@@ -55,7 +54,7 @@ export default class StickyNote {
       alpha: 0,
     }).setOrigin(0.5);
 
-    this.playBtn = this.scene.add.text(0, 50, '▶ Play', {
+    this.playBtn = this.scene.add.text(0, HEIGHT / 2 + 16, '▶ Play', {
       fontSize: '16px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
@@ -95,17 +94,20 @@ export default class StickyNote {
   }
 
   addInteraction() {
-    this.bgRect.setInteractive({ useHandCursor: true });
+    const { WIDTH, HEIGHT } = STICKY_NOTE;
+    const hitArea = new Phaser.Geom.Rectangle(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT);
+    this.container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+    this.container.input.cursor = 'pointer';
 
-    this.bgRect.on('pointerover', () => {
+    this.container.on('pointerover', () => {
       if (this.state === STATE_COLLAPSED) this.peek();
     });
 
-    this.bgRect.on('pointerout', () => {
+    this.container.on('pointerout', () => {
       if (this.state === STATE_PEEKED) this.collapse();
     });
 
-    this.bgRect.on('pointerdown', () => {
+    this.container.on('pointerdown', () => {
       if (this.state !== STATE_SELECTED) {
         this.scene.events.emit('sticky-select', this.songData.id);
       }
