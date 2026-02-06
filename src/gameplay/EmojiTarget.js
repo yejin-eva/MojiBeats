@@ -41,6 +41,7 @@ export default class EmojiTarget {
     const scale = progress * EMOJI_TEXTURE.DISPLAY_SCALE;
     this.emoji.setScale(scale).setAlpha(Math.min(progress * 1.5, 1));
     this.outline.setTint(computeUrgencyTint(progress));
+    this.outline.setAlpha(0.5 + progress * 0.5);
 
     if (progress >= 1 && this.state === STATE_GROWING) {
       this.state = STATE_ACTIVE;

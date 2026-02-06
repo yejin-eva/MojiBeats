@@ -1,11 +1,19 @@
 import { URGENCY } from '../config.js';
 
 export function computeUrgencyTint(progress) {
-  if (progress <= URGENCY.START_PROGRESS) return URGENCY.COLOR_CALM;
-  if (progress >= 1) return URGENCY.COLOR_URGENT;
+  const stops = URGENCY.GRADIENT;
+  if (progress <= URGENCY.START_PROGRESS) return stops[0].color;
 
   const t = (progress - URGENCY.START_PROGRESS) / (1 - URGENCY.START_PROGRESS);
-  return lerpColor(URGENCY.COLOR_CALM, URGENCY.COLOR_URGENT, t);
+
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i].at && t <= stops[i + 1].at) {
+      const segT = (t - stops[i].at) / (stops[i + 1].at - stops[i].at);
+      return lerpColor(stops[i].color, stops[i + 1].color, segT);
+    }
+  }
+
+  return stops[stops.length - 1].color;
 }
 
 export function lerpColor(c1, c2, t) {

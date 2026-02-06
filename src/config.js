@@ -81,9 +81,13 @@ export const PROXIMITY = {
 
 // Urgency indicator: outline shifts color as beat time approaches
 export const URGENCY = {
-  COLOR_CALM: 0xc4b5fd,   // soft lavender (far from beat)
-  COLOR_URGENT: 0xf43f5e, // rose-red (imminent)
-  START_PROGRESS: 0.3     // urgency tinting begins at 30% grow progress
+  START_PROGRESS: 0.3,     // urgency tinting begins at 30% grow progress
+  GRADIENT: [
+    { at: 0.0, color: 0xc4b5fd },  // soft lavender (far)
+    { at: 0.35, color: 0x9b7be8 }, // purple (so-so)
+    { at: 0.7, color: 0xec4899 },  // pink (getting close)
+    { at: 1.0, color: 0xf51d42 },  // red (imminent)
+  ],
 };
 
 // Sticky note UI

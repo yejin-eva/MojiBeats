@@ -32,23 +32,21 @@ describe('lerpColor', () => {
 });
 
 describe('computeUrgencyTint', () => {
-  it('returns calm color at progress 0', () => {
+  it('returns first gradient stop at progress 0', () => {
     expect(computeUrgencyTint(0)).toBe(0xc4b5fd);
   });
 
-  it('returns calm color below START_PROGRESS', () => {
+  it('returns first gradient stop below START_PROGRESS', () => {
     expect(computeUrgencyTint(0.1)).toBe(0xc4b5fd);
     expect(computeUrgencyTint(0.3)).toBe(0xc4b5fd);
   });
 
-  it('returns urgent color at progress 1', () => {
-    expect(computeUrgencyTint(1)).toBe(0xf43f5e);
+  it('returns last gradient stop at progress 1', () => {
+    expect(computeUrgencyTint(1)).toBe(0xf51d42);
   });
 
   it('returns intermediate color at midpoint', () => {
     const result = computeUrgencyTint(0.65);
-    // 0.65 is halfway between 0.3 and 1.0, so t=0.5
-    // Should be midpoint between calm and urgent
     expect(result).not.toBe(0xc4b5fd);
     expect(result).not.toBe(0xf43f5e);
   });
@@ -63,5 +61,27 @@ describe('computeUrgencyTint', () => {
     const rHigh = (high >> 16) & 0xff;
     expect(rMid).toBeGreaterThan(rLow);
     expect(rHigh).toBeGreaterThan(rMid);
+  });
+
+  it('passes through purple mid-gradient', () => {
+    // At ~35% through the gradient (progress ~0.545), should be near purple stop
+    const result = computeUrgencyTint(0.545);
+    const r = (result >> 16) & 0xff;
+    const g = (result >> 8) & 0xff;
+    const b = result & 0xff;
+    // Purple stop is 0x9b7be8: r=155, g=123, b=232
+    expect(r).toBeGreaterThan(130);
+    expect(r).toBeLessThan(180);
+    expect(b).toBeGreaterThan(180);
+  });
+
+  it('passes through pink before reaching red', () => {
+    // At ~70% through the gradient (progress ~0.79), should be near pink stop
+    const result = computeUrgencyTint(0.79);
+    const r = (result >> 16) & 0xff;
+    const g = (result >> 8) & 0xff;
+    // Pink stop is 0xec4899: r=236, g=72, b=153
+    expect(r).toBeGreaterThan(200);
+    expect(g).toBeLessThan(100);
   });
 });
