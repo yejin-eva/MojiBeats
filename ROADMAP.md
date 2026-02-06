@@ -189,6 +189,12 @@
 - [ ] Settings: key rebinding, volume controls
 - [ ] Responsive scaling (Phaser Scale.FIT)
 - [ ] Loading states (while analyzing audio)
+- [ ] Beatmap difficulty & balancing
+  - [ ] Filter onsets to BPM grid (quarter notes as base)
+  - [ ] Selectively add strong off-beat onsets for variety
+  - [ ] Enforce minimum spacing between spawn events
+  - [ ] Energy-based threshold (keep strongest N% of peaks)
+  - [ ] Difficulty curve: ramp density over the song
 - [ ] Edge case handling:
   - [ ] Very short songs
   - [ ] Songs with no detectable beats
