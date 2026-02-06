@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING } from '../config.js';
+import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
+import { judge, MISS } from '../gameplay/TimingJudge.js';
+import EmojiTarget from '../gameplay/EmojiTarget.js';
+import InputHandler from '../gameplay/InputHandler.js';
 
 export default class GameplayScene extends Phaser.Scene {
   constructor() {
@@ -16,43 +20,29 @@ export default class GameplayScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#0a0a0f');
 
-    this.add.text(GAME_WIDTH / 2, 30, this.songName, {
-      fontSize: '20px',
+    this.add.text(20, 16, this.songName, {
+      fontSize: '18px',
       fontFamily: 'Arial',
       color: '#9ca3af'
-    }).setOrigin(0.5);
+    });
 
-    this.add.text(GAME_WIDTH / 2, 60, `${this.beats.length} beats | ~${Math.round(this.bpm)} BPM`, {
-      fontSize: '16px',
-      fontFamily: 'Arial',
-      color: '#6b7280'
-    }).setOrigin(0.5);
-
-    this.timeText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '', {
-      fontSize: '48px',
+    this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
+      fontSize: '32px',
       fontFamily: 'Arial',
       color: '#ffffff'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setAlpha(0);
 
-    this.beatFlash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x7c3aed, 0);
-    this.nextBeatIndex = 0;
-
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 40, 'Press ESC to return to Song Select', {
-      fontSize: '16px',
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to quit  |  Z/X to hit  |  Move mouse to aim', {
+      fontSize: '14px',
       fontFamily: 'Arial',
       color: '#4b5563'
     }).setOrigin(0.5);
 
-    const gameOverBtn = this.add.text(GAME_WIDTH - 20, GAME_HEIGHT - 20, '[Test: Game Over]', {
-      fontSize: '14px',
-      fontFamily: 'Arial',
-      color: '#ef4444'
-    }).setOrigin(1, 1).setInteractive({ useHandCursor: true });
+    this.beatmap = generateBeatmap(this.beats);
+    this.nextSpawnIndex = 0;
+    this.activeTargets = [];
 
-    gameOverBtn.on('pointerdown', () => {
-      this.stopAudio();
-      this.scene.start(SCENES.GAME_OVER);
-    });
+    this.inputHandler = new InputHandler(this, (x, y) => this.handleHit(x, y));
 
     this.input.keyboard.on('keydown-ESC', () => {
       this.stopAudio();
@@ -62,49 +52,126 @@ export default class GameplayScene extends Phaser.Scene {
     if (this.audioManager) {
       this.audioManager.play();
     } else {
-      this.timeText.setText('No audio loaded');
-      this.time.delayedCall(3000, () => {
-        if (this.scene.isActive(SCENES.GAMEPLAY)) {
-          this.scene.start(SCENES.VICTORY);
-        }
-      });
+      this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'No audio loaded', {
+        fontSize: '36px',
+        fontFamily: 'Arial',
+        color: '#ffffff'
+      }).setOrigin(0.5);
     }
   }
 
   update() {
-    if (!this.audioManager || !this.audioManager.playing) {
-      if (this.audioManager && this.audioManager.getCurrentTime() > 0) {
-        this.scene.start(SCENES.VICTORY);
-      }
+    if (!this.audioManager) return;
+
+    const currentTime = this.audioManager.getCurrentTime();
+
+    if (!this.audioManager.playing && currentTime > 0) {
+      this.cleanupTargets();
+      this.scene.start(SCENES.VICTORY);
       return;
     }
 
-    const currentTime = this.audioManager.getCurrentTime();
-    const duration = this.audioManager.getDuration();
-    this.timeText.setText(`${currentTime.toFixed(1)}s / ${duration.toFixed(1)}s`);
+    this.spawnDueTargets(currentTime);
+    this.updateTargets(currentTime);
+    this.expireMissedTargets(currentTime);
+  }
 
+  spawnDueTargets(currentTime) {
     while (
-      this.nextBeatIndex < this.beats.length &&
-      this.beats[this.nextBeatIndex] <= currentTime
+      this.nextSpawnIndex < this.beatmap.length &&
+      this.beatmap[this.nextSpawnIndex].spawnTime <= currentTime
     ) {
-      this.flashOnBeat();
-      this.nextBeatIndex++;
+      const event = this.beatmap[this.nextSpawnIndex];
+      const target = new EmojiTarget(this, event);
+      this.activeTargets.push(target);
+      this.nextSpawnIndex++;
     }
   }
 
-  flashOnBeat() {
-    this.beatFlash.setAlpha(0.15);
+  updateTargets(currentTime) {
+    for (const target of this.activeTargets) {
+      target.update(currentTime);
+    }
+  }
+
+  expireMissedTargets(currentTime) {
+    for (let i = this.activeTargets.length - 1; i >= 0; i--) {
+      const target = this.activeTargets[i];
+      if (!target.isAlive) {
+        this.activeTargets.splice(i, 1);
+        continue;
+      }
+      const offsetMs = target.getOffsetMs(currentTime);
+      if (offsetMs > TIMING.GOOD) {
+        target.miss();
+        this.showJudgment('Miss', '#ef4444');
+        this.activeTargets.splice(i, 1);
+      }
+    }
+  }
+
+  handleHit(x, y) {
+    if (!this.audioManager) return;
+    const currentTime = this.audioManager.getCurrentTime();
+
+    let closest = null;
+    let closestDist = Infinity;
+
+    for (const target of this.activeTargets) {
+      if (!target.isAlive) continue;
+      if (!target.containsPoint(x, y)) continue;
+
+      const dist = Math.abs(target.getOffsetMs(currentTime));
+      if (dist < closestDist) {
+        closest = target;
+        closestDist = dist;
+      }
+    }
+
+    if (!closest) return;
+
+    const offsetMs = closest.getOffsetMs(currentTime);
+    const result = judge(offsetMs);
+
+    if (result === MISS) return;
+
+    closest.hit();
+    const idx = this.activeTargets.indexOf(closest);
+    if (idx !== -1) this.activeTargets.splice(idx, 1);
+
+    const colors = {
+      perfect: '#fbbf24',
+      great: '#34d399',
+      good: '#60a5fa'
+    };
+    this.showJudgment(result.charAt(0).toUpperCase() + result.slice(1), colors[result]);
+  }
+
+  showJudgment(text, color) {
+    this.judgmentText.setText(text).setColor(color).setAlpha(1);
     this.tweens.add({
-      targets: this.beatFlash,
+      targets: this.judgmentText,
       alpha: 0,
-      duration: 150,
-      ease: 'Power2'
+      y: GAME_HEIGHT - 100,
+      duration: 400,
+      ease: 'Power2',
+      onComplete: () => {
+        this.judgmentText.setY(GAME_HEIGHT - 80);
+      }
     });
+  }
+
+  cleanupTargets() {
+    for (const target of this.activeTargets) {
+      target.destroy();
+    }
+    this.activeTargets = [];
   }
 
   stopAudio() {
     if (this.audioManager) {
       this.audioManager.stop();
     }
+    this.cleanupTargets();
   }
 }
