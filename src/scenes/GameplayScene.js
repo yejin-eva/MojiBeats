@@ -12,6 +12,7 @@ import { emitBleed } from '../effects/HealthBleed.js';
 import { showCombo } from '../effects/ComboText.js';
 import BackgroundReactive from '../effects/BackgroundReactive.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { playHitSound, playMissSound, playComboSound } from '../audio/SFX.js';
 
 export default class GameplayScene extends Phaser.Scene {
   constructor() {
@@ -234,6 +235,11 @@ export default class GameplayScene extends Phaser.Scene {
     if (tier === 'perfect') {
       this.cameras.main.shake(50, 0.003);
     }
+    playHitSound();
+
+    if (this.scoreState.combo > 0 && this.scoreState.combo % 10 === 0) {
+      playComboSound();
+    }
 
     this.healthBar.update(this.healthState.hp);
     this.updateHUD();
@@ -249,6 +255,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.healthBar.update(this.healthState.hp);
     this.healthBar.showDamage();
     emitBleed(this);
+    playMissSound();
     this.updateHUD();
     this.showJudgment('Miss', '#ef4444');
 

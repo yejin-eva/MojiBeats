@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { emitConfetti } from '../effects/Confetti.js';
 
 export default class VictoryScene extends Phaser.Scene {
   constructor() {
@@ -16,6 +17,7 @@ export default class VictoryScene extends Phaser.Scene {
     pageFlipIn(this);
 
     this.drawNotebookGrid();
+    this.time.delayedCall(500, () => emitConfetti(this));
 
     this.add.text(GAME_WIDTH / 2, 120, '🎉 🏆 ✨', {
       fontSize: '56px',
