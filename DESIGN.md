@@ -83,10 +83,11 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### Art Style
 
-- **Flat, minimal, Pinterest-aesthetic** — clean, modern, soft.
-- **Emojis are the art** — no custom sprites. Native system emojis are the game's visual identity.
-- Light/pastel palette for menus (song select, game over).
-- Dark palette with reactive glows for gameplay.
+- **Notebook / sticker theme** — the game looks like a notebook page covered in emoji stickers.
+- **Background**: Off-white (#f8f8f8) with a faint light-blue grid and a single horizontal light-red margin line near the top, like ruled notebook paper.
+- **Font**: "Friendly Scribbles" by @kmlgames — a handwritten-style font used for all UI text (titles, scores, judgments, countdowns) to reinforce the notebook/doodle aesthetic.
+- **Emojis are stickers** — native system emojis rendered as if stuck onto notebook paper. Silhouette outlines give them a sticker-edge feel.
+- Light pastel palette throughout. No dark backgrounds.
 
 ### Emoji Enemies
 
@@ -119,10 +120,9 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### Background (Gameplay)
 
-- Dark base with colored radial gradients.
-- **Reactive to music**: background pulses/breathes with the beat.
-- Subtle audio visualizer bars at the bottom (low opacity).
-- Intensity of visual effects scales with song energy.
+- **Notebook paper**: off-white base with faint light-blue grid lines (horizontal and vertical, ~28px spacing) and a single light-red horizontal margin line near the top.
+- **Reactive to music**: a subtle purple radial pulse breathes with the beat, overlaid on the notebook grid.
+- The notebook grid is static and always visible; only the pulse reacts to audio energy.
 
 ### Combo Counter
 

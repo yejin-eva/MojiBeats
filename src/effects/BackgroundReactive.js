@@ -1,28 +1,32 @@
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
-
-const NUM_BARS = 32;
-const BAR_WIDTH = GAME_WIDTH / NUM_BARS;
-const BAR_MAX_HEIGHT = 80;
+import { GAME_WIDTH, GAME_HEIGHT, NOTEBOOK } from '../config.js';
 
 export default class BackgroundReactive {
   constructor(scene) {
     this.scene = scene;
 
+    this.gridLines = [];
+
+    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
+      const line = scene.add.rectangle(
+        GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA
+      );
+      this.gridLines.push(line);
+    }
+
+    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
+      const line = scene.add.rectangle(
+        x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA
+      );
+      this.gridLines.push(line);
+    }
+
+    this.marginLine = scene.add.rectangle(
+      NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA
+    );
+
     this.pulse = scene.add.circle(
       GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 0xc4b5fd, 0
     );
-
-    this.bars = [];
-    for (let i = 0; i < NUM_BARS; i++) {
-      const bar = scene.add.rectangle(
-        i * BAR_WIDTH + BAR_WIDTH / 2,
-        GAME_HEIGHT,
-        BAR_WIDTH - 2,
-        0,
-        0xc4b5fd, 0.2
-      ).setOrigin(0.5, 1);
-      this.bars.push(bar);
-    }
   }
 
   update(audioManager) {
@@ -31,26 +35,19 @@ export default class BackgroundReactive {
     const freqData = audioManager.getFrequencyData();
     if (freqData.length === 0) return;
 
-    const step = Math.floor(freqData.length / NUM_BARS);
     let totalEnergy = 0;
-
-    for (let i = 0; i < NUM_BARS; i++) {
-      const value = freqData[i * step] || 0;
-      const normalized = value / 255;
-      totalEnergy += normalized;
-
-      const height = normalized * BAR_MAX_HEIGHT;
-      this.bars[i].setSize(BAR_WIDTH - 2, height);
-      this.bars[i].setAlpha(0.08 + normalized * 0.12);
+    const step = Math.floor(freqData.length / 16);
+    for (let i = 0; i < 16; i++) {
+      totalEnergy += (freqData[i * step] || 0) / 255;
     }
 
-    const avgEnergy = totalEnergy / NUM_BARS;
-    this.pulse.setAlpha(avgEnergy * 0.08);
+    const avgEnergy = totalEnergy / 16;
+    this.pulse.setAlpha(avgEnergy * 0.06);
     this.pulse.setScale(0.8 + avgEnergy * 0.4);
   }
 
   onBeat() {
-    this.pulse.setAlpha(0.12);
+    this.pulse.setAlpha(0.1);
     this.scene.tweens.add({
       targets: this.pulse,
       alpha: 0,
@@ -63,7 +60,8 @@ export default class BackgroundReactive {
 
   destroy() {
     this.pulse.destroy();
-    for (const bar of this.bars) bar.destroy();
-    this.bars = [];
+    this.marginLine.destroy();
+    for (const line of this.gridLines) line.destroy();
+    this.gridLines = [];
   }
 }

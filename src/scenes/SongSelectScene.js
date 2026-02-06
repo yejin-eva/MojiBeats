@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 import AudioManager from '../audio/AudioManager.js';
 import { detectBeats, estimateBpm } from '../audio/BeatDetector.js';
 
@@ -9,23 +9,25 @@ export default class SongSelectScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#f5f0ff');
+    this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
+
+    this.drawNotebookGrid();
 
     this.add.text(GAME_WIDTH / 2, 160, 'MojiBeats', {
-      fontSize: '72px',
-      fontFamily: 'Arial',
+      fontSize: '96px',
+      fontFamily: THEME_FONT,
       color: '#7c3aed'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 240, 'Select a Song', {
-      fontSize: '28px',
-      fontFamily: 'Arial',
+    this.add.text(GAME_WIDTH / 2, 250, 'Select a Song', {
+      fontSize: '32px',
+      fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
     this.statusText = this.add.text(GAME_WIDTH / 2, 520, '', {
-      fontSize: '18px',
-      fontFamily: 'Arial',
+      fontSize: '22px',
+      fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
@@ -34,8 +36,8 @@ export default class SongSelectScene extends Phaser.Scene {
 
   createUploadButton() {
     const uploadBtn = this.add.text(GAME_WIDTH / 2, 400, 'Upload MP3', {
-      fontSize: '36px',
-      fontFamily: 'Arial',
+      fontSize: '40px',
+      fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#7c3aed',
       padding: { x: 40, y: 16 }
@@ -46,6 +48,16 @@ export default class SongSelectScene extends Phaser.Scene {
     uploadBtn.on('pointerdown', () => this.triggerFileUpload());
 
     this.uploadBtn = uploadBtn;
+  }
+
+  drawNotebookGrid() {
+    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
+      this.add.rectangle(GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
+    }
+    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
+      this.add.rectangle(x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
+    }
+    this.add.rectangle(NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA);
   }
 
   triggerFileUpload() {

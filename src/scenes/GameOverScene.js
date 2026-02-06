@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -11,41 +11,44 @@ export default class GameOverScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#fdf2f8');
+    this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
+
+    this.drawNotebookGrid();
 
     this.add.text(GAME_WIDTH / 2, 120, '😵 💥 🎮', {
-      fontSize: '56px'
+      fontSize: '56px',
+      padding: { top: 8, bottom: 4 }
     }).setOrigin(0.5);
 
     this.add.text(GAME_WIDTH / 2, 200, 'Game Over', {
-      fontSize: '56px',
-      fontFamily: 'Arial',
+      fontSize: '64px',
+      fontFamily: THEME_FONT,
       color: '#be123c'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 260, 'The emojis got you this time...', {
-      fontSize: '22px',
-      fontFamily: 'Arial',
+    this.add.text(GAME_WIDTH / 2, 265, 'The emojis got you this time...', {
+      fontSize: '26px',
+      fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
     const { score, maxCombo, accuracy } = this.results;
 
-    this.add.text(GAME_WIDTH / 2, 340, `Score: ${score.toLocaleString()}`, {
-      fontSize: '28px',
-      fontFamily: 'Arial',
+    this.add.text(GAME_WIDTH / 2, 350, `Score: ${score.toLocaleString()}`, {
+      fontSize: '32px',
+      fontFamily: THEME_FONT,
       color: '#374151'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 380, `Max Combo: ${maxCombo}  |  Accuracy: ${accuracy}%`, {
-      fontSize: '20px',
-      fontFamily: 'Arial',
+    this.add.text(GAME_WIDTH / 2, 400, `Max Combo: ${maxCombo}  |  Accuracy: ${accuracy}%`, {
+      fontSize: '24px',
+      fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 460, 'Retry', {
-      fontSize: '28px',
-      fontFamily: 'Arial',
+    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 500, 'Retry', {
+      fontSize: '32px',
+      fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#7c3aed',
       padding: { x: 28, y: 12 }
@@ -53,14 +56,24 @@ export default class GameOverScene extends Phaser.Scene {
 
     retryBtn.on('pointerdown', () => this.scene.start(SCENES.SONG_SELECT));
 
-    const selectBtn = this.add.text(GAME_WIDTH / 2 + 120, 460, 'Song Select', {
-      fontSize: '28px',
-      fontFamily: 'Arial',
+    const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 500, 'Song Select', {
+      fontSize: '32px',
+      fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#6b7280',
       padding: { x: 28, y: 12 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     selectBtn.on('pointerdown', () => this.scene.start(SCENES.SONG_SELECT));
+  }
+
+  drawNotebookGrid() {
+    for (let y = NOTEBOOK.GRID_SPACING; y < GAME_HEIGHT; y += NOTEBOOK.GRID_SPACING) {
+      this.add.rectangle(GAME_WIDTH / 2, y, GAME_WIDTH, 1, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
+    }
+    for (let x = NOTEBOOK.GRID_SPACING; x < GAME_WIDTH; x += NOTEBOOK.GRID_SPACING) {
+      this.add.rectangle(x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
+    }
+    this.add.rectangle(NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA);
   }
 }

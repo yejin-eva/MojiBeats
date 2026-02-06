@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, NOTEBOOK } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
 import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
@@ -25,7 +25,7 @@ export default class GameplayScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#f5f0ff');
+    this.cameras.main.setBackgroundColor(NOTEBOOK.BG_COLOR);
 
     this.healthState = createHealthState();
     this.scoreState = createScoreState();
@@ -34,27 +34,27 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.healthBar = new HealthBar(this);
 
-    this.add.text(20, 16, this.songName, {
-      fontSize: '16px',
-      fontFamily: 'Arial',
-      color: '#6b7280'
+    this.add.text(20, 48, this.songName, {
+      fontSize: '28px',
+      fontFamily: THEME_FONT,
+      color: '#5b6abf'
     });
 
-    this.scoreText = this.add.text(GAME_WIDTH - 20, 16, '0', {
-      fontSize: '24px',
-      fontFamily: 'Arial',
+    this.scoreText = this.add.text(GAME_WIDTH - 20, 48, '0', {
+      fontSize: '32px',
+      fontFamily: THEME_FONT,
       color: '#d97706'
     }).setOrigin(1, 0);
 
-    this.comboText = this.add.text(GAME_WIDTH - 20, 46, '', {
-      fontSize: '16px',
-      fontFamily: 'Arial',
+    this.comboText = this.add.text(GAME_WIDTH - 20, 82, '', {
+      fontSize: '22px',
+      fontFamily: THEME_FONT,
       color: '#7c3aed'
     }).setOrigin(1, 0);
 
     this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
-      fontSize: '32px',
-      fontFamily: 'Arial',
+      fontSize: '40px',
+      fontFamily: THEME_FONT,
       color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
 
@@ -98,8 +98,8 @@ export default class GameplayScene extends Phaser.Scene {
     numbers.forEach((num, idx) => {
       this.time.delayedCall(idx * 1000, () => {
         const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, `${num}`, {
-          fontSize: '96px',
-          fontFamily: 'Arial',
+          fontSize: '120px',
+          fontFamily: THEME_FONT,
           color: '#7c3aed'
         }).setOrigin(0.5).setAlpha(1).setScale(0.5);
 

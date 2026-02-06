@@ -82,6 +82,20 @@ export const URGENCY = {
   START_PROGRESS: 0.3     // urgency tinting begins at 30% grow progress
 };
 
+// Theme
+export const THEME_FONT = 'FriendlyScribbles';
+
+// Notebook background
+export const NOTEBOOK = {
+  BG_COLOR: '#f8f8f8',
+  GRID_COLOR: 0xd4e4f7,
+  GRID_ALPHA: 0.4,
+  GRID_SPACING: 28,
+  MARGIN_COLOR: 0xf0a0a0,
+  MARGIN_ALPHA: 0.5,
+  MARGIN_X: 144
+};
+
 // Game dimensions
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;

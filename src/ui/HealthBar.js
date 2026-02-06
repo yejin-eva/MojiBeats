@@ -1,9 +1,9 @@
 import { GAME_WIDTH, HEALTH } from '../config.js';
 
 const BAR_WIDTH = 400;
-const BAR_HEIGHT = 20;
+const BAR_HEIGHT = 16;
 const BAR_X = (GAME_WIDTH - BAR_WIDTH) / 2;
-const BAR_Y = 20;
+const BAR_Y = 14;
 
 export default class HealthBar {
   constructor(scene) {
