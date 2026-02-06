@@ -15,6 +15,9 @@ describe('createScoreState', () => {
     expect(state.maxCombo).toBe(0);
     expect(state.hits).toBe(0);
     expect(state.misses).toBe(0);
+    expect(state.perfects).toBe(0);
+    expect(state.greats).toBe(0);
+    expect(state.goods).toBe(0);
   });
 });
 
@@ -55,6 +58,17 @@ describe('applyHit', () => {
     state = applyHit(state, 'great');
     state = applyHit(state, 'good');
     expect(state.hits).toBe(3);
+  });
+
+  it('tracks per-tier hit counts', () => {
+    let state = createScoreState();
+    state = applyHit(state, 'perfect');
+    state = applyHit(state, 'perfect');
+    state = applyHit(state, 'great');
+    state = applyHit(state, 'good');
+    expect(state.perfects).toBe(2);
+    expect(state.greats).toBe(1);
+    expect(state.goods).toBe(1);
   });
 
   it('scores correctly for each tier', () => {
@@ -125,5 +139,29 @@ describe('getAccuracy', () => {
 
   it('returns 0 for no notes', () => {
     expect(getAccuracy(createScoreState())).toBe(0);
+  });
+
+  it('weights greats lower than perfects', () => {
+    let state = createScoreState();
+    state = applyHit(state, 'great');
+    state = applyHit(state, 'great');
+    // 2 greats: (2*200)/(2*300) = 67%
+    expect(getAccuracy(state)).toBe(67);
+  });
+
+  it('weights goods lower than greats', () => {
+    let state = createScoreState();
+    state = applyHit(state, 'good');
+    state = applyHit(state, 'good');
+    // 2 goods: (2*100)/(2*300) = 33%
+    expect(getAccuracy(state)).toBe(33);
+  });
+
+  it('blends tiers correctly', () => {
+    let state = createScoreState();
+    state = applyHit(state, 'perfect');
+    state = applyHit(state, 'good');
+    // (300+100)/(2*300) = 67%
+    expect(getAccuracy(state)).toBe(67);
   });
 });
