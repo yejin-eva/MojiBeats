@@ -323,10 +323,34 @@ export default class GameplayScene extends Phaser.Scene {
 
   pauseGame() {
     this.paused = true;
+    this.time.paused = true;
+    this.tweens.pauseAll();
     if (this.audioManager) {
       this.audioManager.pause();
     }
+    this.showPauseOverlay();
+  }
 
+  resumeGame() {
+    this.destroyPauseOverlay();
+    this.paused = false;
+    this.time.paused = false;
+    this.tweens.resumeAll();
+    if (this.audioManager && this.started) {
+      this.audioManager.play();
+    }
+  }
+
+  quitToMenu() {
+    this.destroyPauseOverlay();
+    this.paused = false;
+    this.time.paused = false;
+    this.tweens.resumeAll();
+    this.stopAudio();
+    pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
+  }
+
+  showPauseOverlay() {
     this.pauseOverlay = this.add.container(0, 0).setDepth(1000);
 
     const dimBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5);
@@ -352,28 +376,20 @@ export default class GameplayScene extends Phaser.Scene {
     const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80, 'Quit to Menu', {
       fontSize: '24px',
       fontFamily: THEME_FONT,
-      color: '#6b7280',
+      color: '#ffffff',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     quitBtn.on('pointerover', () => quitBtn.setColor('#ef4444'));
-    quitBtn.on('pointerout', () => quitBtn.setColor('#6b7280'));
-    quitBtn.on('pointerdown', () => {
-      this.paused = false;
-      this.stopAudio();
-      pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
-    });
+    quitBtn.on('pointerout', () => quitBtn.setColor('#ffffff'));
+    quitBtn.on('pointerdown', () => this.quitToMenu());
 
     this.pauseOverlay.add([dimBg, title, resumeBtn, quitBtn]);
   }
 
-  resumeGame() {
-    this.paused = false;
+  destroyPauseOverlay() {
     if (this.pauseOverlay) {
       this.pauseOverlay.destroy();
       this.pauseOverlay = null;
-    }
-    if (this.audioManager) {
-      this.audioManager.play();
     }
   }
 }
