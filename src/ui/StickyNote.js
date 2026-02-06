@@ -54,13 +54,15 @@ export default class StickyNote {
       alpha: 0,
     }).setOrigin(0.5);
 
-    this.playBtn = this.scene.add.text(0, HEIGHT / 2 + 16, '▶ Play', {
+    this.container.add([this.bgRect, this.tape, this.emojiText, this.titleText, this.detailText]);
+
+    this.playBtn = this.scene.add.text(0, 0, '▶ Play', {
       fontSize: '16px',
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#7c3aed',
       padding: { x: 16, y: 6 },
-    }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
 
     this.playBtn.on('pointerover', () => this.playBtn.setStyle({ backgroundColor: '#6d28d9' }));
     this.playBtn.on('pointerout', () => this.playBtn.setStyle({ backgroundColor: '#7c3aed' }));
@@ -68,7 +70,14 @@ export default class StickyNote {
       this.scene.events.emit('sticky-play', this.songData.id);
     });
 
-    this.container.add([this.bgRect, this.tape, this.emojiText, this.titleText, this.detailText, this.playBtn]);
+    this.deleteBtn = this.scene.add.text(0, 0, '🗑️', {
+      fontSize: '18px',
+      padding: { top: 2, bottom: 2 },
+    }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
+
+    this.deleteBtn.on('pointerdown', () => {
+      this.scene.events.emit('sticky-delete', this.songData.id);
+    });
   }
 
   getDetailString() {
@@ -94,8 +103,9 @@ export default class StickyNote {
   }
 
   addInteraction() {
-    const { WIDTH, HEIGHT } = STICKY_NOTE;
-    const hitArea = new Phaser.Geom.Rectangle(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT);
+    const { WIDTH, HEIGHT, COLLAPSED_Y, PEEK_Y } = STICKY_NOTE;
+    const peekTravel = COLLAPSED_Y - PEEK_Y;
+    const hitArea = new Phaser.Geom.Rectangle(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT + peekTravel);
     this.container.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
     this.container.input.cursor = 'pointer';
 
@@ -122,7 +132,7 @@ export default class StickyNote {
       targets: this.container,
       y: STICKY_NOTE.PEEK_Y,
       duration: STICKY_NOTE.PEEK_DURATION,
-      ease: 'Back.easeOut',
+      ease: 'Power2',
     });
 
     this.scene.tweens.add({
@@ -154,28 +164,43 @@ export default class StickyNote {
     this.state = STATE_SELECTED;
     this.container.setDepth(100);
 
+    const { SELECTED_Y, SELECTED_SCALE, HEIGHT, WIDTH, LIFT_DURATION } = STICKY_NOTE;
+    const scaledHalfH = (HEIGHT / 2) * SELECTED_SCALE;
+    const scaledHalfW = (WIDTH / 2) * SELECTED_SCALE;
+
     this.scene.tweens.add({
       targets: this.container,
       x: GAME_WIDTH / 2,
-      y: STICKY_NOTE.SELECTED_Y,
-      scaleX: STICKY_NOTE.SELECTED_SCALE,
-      scaleY: STICKY_NOTE.SELECTED_SCALE,
+      y: SELECTED_Y,
+      scaleX: SELECTED_SCALE,
+      scaleY: SELECTED_SCALE,
       angle: 0,
-      duration: STICKY_NOTE.LIFT_DURATION,
+      duration: LIFT_DURATION,
       ease: 'Back.easeOut',
     });
 
     this.scene.tweens.add({
       targets: this.detailText,
       alpha: 1,
-      duration: STICKY_NOTE.LIFT_DURATION,
+      duration: LIFT_DURATION,
     });
 
     this.scene.tweens.add({
       targets: this.playBtn,
+      x: GAME_WIDTH / 2,
+      y: SELECTED_Y + scaledHalfH + 28,
+      alpha: 1,
+      duration: LIFT_DURATION,
+      ease: 'Back.easeOut',
+    });
+
+    this.scene.tweens.add({
+      targets: this.deleteBtn,
+      x: GAME_WIDTH / 2 + scaledHalfW + 20,
+      y: SELECTED_Y - scaledHalfH + 10,
       alpha: 1,
       duration: 200,
-      delay: STICKY_NOTE.LIFT_DURATION - 100,
+      delay: LIFT_DURATION - 100,
     });
   }
 
@@ -187,6 +212,11 @@ export default class StickyNote {
 
     this.scene.tweens.add({
       targets: this.playBtn,
+      alpha: 0,
+      duration: 100,
+    });
+    this.scene.tweens.add({
+      targets: this.deleteBtn,
       alpha: 0,
       duration: 100,
     });
@@ -218,5 +248,7 @@ export default class StickyNote {
 
   destroy() {
     this.container.destroy();
+    this.playBtn.destroy();
+    this.deleteBtn.destroy();
   }
 }

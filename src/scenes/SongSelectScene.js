@@ -3,7 +3,7 @@ import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK, STICKY_NOTE, EMO
 import AudioManager from '../audio/AudioManager.js';
 import { detectBeats, estimateBpm } from '../audio/BeatDetector.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
-import { getAllSongs, getSongBlob, saveSong, sanitizeTitle, incrementPlayCount } from '../storage/SongLibrary.js';
+import { getAllSongs, getSongBlob, saveSong, sanitizeTitle, incrementPlayCount, deleteSong } from '../storage/SongLibrary.js';
 import { getScoreForSong } from '../storage/ScoreStore.js';
 import StickyNote from '../ui/StickyNote.js';
 
@@ -33,7 +33,7 @@ export default class SongSelectScene extends Phaser.Scene {
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    this.statusText = this.add.text(GAME_WIDTH / 2, 460, '', {
+    this.statusText = this.add.text(GAME_WIDTH / 2, 530, '', {
       fontSize: '22px',
       fontFamily: THEME_FONT,
       color: '#6b7280'
@@ -65,6 +65,7 @@ export default class SongSelectScene extends Phaser.Scene {
   listenForStickyEvents() {
     this.events.on('sticky-select', (songId) => this.onStickySelect(songId));
     this.events.on('sticky-play', (songId) => this.playSavedSong(songId));
+    this.events.on('sticky-delete', (songId) => this.onStickyDelete(songId));
   }
 
   drawNotebookGrid() {
@@ -129,12 +130,27 @@ export default class SongSelectScene extends Phaser.Scene {
     }
   }
 
+  async onStickyDelete(songId) {
+    try {
+      await deleteSong(songId);
+      this.selectedSongId = null;
+      await this.loadSavedSongs();
+    } catch (err) {
+      console.error('[MojiBeats] Failed to delete song:', err);
+    }
+  }
+
   onBackgroundClick(pointer) {
     if (this.selectedSongId === null) return;
 
     const hitAny = this.stickyNotes.some((note) => {
-      const bounds = note.container.getBounds();
-      return bounds.contains(pointer.x, pointer.y);
+      const containerBounds = note.container.getBounds();
+      if (containerBounds.contains(pointer.x, pointer.y)) return true;
+      const playBounds = note.playBtn.getBounds();
+      if (playBounds.contains(pointer.x, pointer.y)) return true;
+      const delBounds = note.deleteBtn.getBounds();
+      if (delBounds.contains(pointer.x, pointer.y)) return true;
+      return false;
     });
 
     if (!hitAny) {
