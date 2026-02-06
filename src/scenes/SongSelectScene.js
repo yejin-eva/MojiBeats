@@ -40,7 +40,9 @@ export default class SongSelectScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.createUploadButton();
+    this.createDropZoneHint();
     this.listenForStickyEvents();
+    this.listenForDragDrop();
     this.loadSavedSongs();
 
     this.input.on('pointerdown', (pointer) => this.onBackgroundClick(pointer));
@@ -60,6 +62,48 @@ export default class SongSelectScene extends Phaser.Scene {
     uploadBtn.on('pointerdown', () => this.triggerFileUpload());
 
     this.uploadBtn = uploadBtn;
+  }
+
+  createDropZoneHint() {
+    this.dropHint = this.add.text(GAME_WIDTH / 2, 390, 'or drag & drop an MP3 here', {
+      fontSize: '18px',
+      fontFamily: THEME_FONT,
+      color: '#9ca3af',
+    }).setOrigin(0.5);
+  }
+
+  listenForDragDrop() {
+    const canvas = this.game.canvas;
+
+    this.dragOverHandler = (e) => {
+      e.preventDefault();
+      this.dropHint.setColor('#7c3aed');
+    };
+
+    this.dragLeaveHandler = () => {
+      this.dropHint.setColor('#9ca3af');
+    };
+
+    this.dropHandler = (e) => {
+      e.preventDefault();
+      this.dropHint.setColor('#9ca3af');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('audio/')) {
+        this.handleFile(file);
+      } else {
+        this.statusText.setText('Please drop an MP3 file.');
+      }
+    };
+
+    canvas.addEventListener('dragover', this.dragOverHandler);
+    canvas.addEventListener('dragleave', this.dragLeaveHandler);
+    canvas.addEventListener('drop', this.dropHandler);
+
+    this.events.on('shutdown', () => {
+      canvas.removeEventListener('dragover', this.dragOverHandler);
+      canvas.removeEventListener('dragleave', this.dragLeaveHandler);
+      canvas.removeEventListener('drop', this.dropHandler);
+    });
   }
 
   listenForStickyEvents() {
@@ -182,6 +226,7 @@ export default class SongSelectScene extends Phaser.Scene {
   async handleFile(file) {
     this.statusText.setText('Loading audio...');
     this.uploadBtn.setVisible(false);
+    this.dropHint.setVisible(false);
 
     const audioManager = new AudioManager();
 
@@ -224,18 +269,21 @@ export default class SongSelectScene extends Phaser.Scene {
       console.error('[MojiBeats] Audio load error:', err);
       this.statusText.setText('Error loading audio. Try another MP3.');
       this.uploadBtn.setVisible(true);
+      this.dropHint.setVisible(true);
     }
   }
 
   async playSavedSong(songId) {
     this.statusText.setText('Loading song...');
     this.uploadBtn.setVisible(false);
+    this.dropHint.setVisible(false);
 
     try {
       const blob = await getSongBlob(songId);
       if (!blob) {
         this.statusText.setText('Song data not found.');
         this.uploadBtn.setVisible(true);
+        this.dropHint.setVisible(true);
         return;
       }
 
@@ -263,6 +311,7 @@ export default class SongSelectScene extends Phaser.Scene {
       console.error('[MojiBeats] Failed to load saved song:', err);
       this.statusText.setText('Error loading song. Try again.');
       this.uploadBtn.setVisible(true);
+      this.dropHint.setVisible(true);
     }
   }
 }
