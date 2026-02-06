@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
+import { calculateGrade, saveScore } from '../storage/ScoreStore.js';
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -8,7 +9,7 @@ export default class GameOverScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '' };
+    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '', songId: null };
   }
 
   create() {
@@ -16,6 +17,13 @@ export default class GameOverScene extends Phaser.Scene {
     pageFlipIn(this);
 
     this.drawNotebookGrid();
+
+    const { score, maxCombo, accuracy, songId } = this.results;
+    const grade = calculateGrade(accuracy);
+
+    if (songId) {
+      saveScore(songId, { score, maxCombo, accuracy, grade });
+    }
 
     this.add.text(GAME_WIDTH / 2, 120, '😵 💥 🎮', {
       fontSize: '56px',
@@ -33,8 +41,6 @@ export default class GameOverScene extends Phaser.Scene {
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
-
-    const { score, maxCombo, accuracy } = this.results;
 
     const scoreText = this.add.text(GAME_WIDTH / 2, 350, 'Score: 0', {
       fontSize: '32px',

@@ -136,16 +136,19 @@ MojiBeats is a browser-based rhythm game inspired by osu! where players fight em
 
 ### 1. Song Select
 
-- **Light pastel gradient background** with floating emoji decorations (low opacity).
-- **Title**: "MojiBeats" in gradient text.
-- **Song library**: Vertical list of song cards.
-  - Each card: emoji icon, song title, artist, BPM badge.
-  - Cards have frosted glass effect (white, semi-transparent, blur).
-  - Hover: subtle lift + glow.
-- **Upload area** below the song list:
-  - Drag-and-drop zone for MP3 files.
-  - YouTube link input with a "Load" button.
-- Previously uploaded songs are **persisted** and appear in the library.
+- **Notebook background** matching the game's notebook theme (grid lines, margin line).
+- **Title**: "MojiBeats" in handwritten font.
+- **Upload button**: "Upload MP3" button centered below the title. Uploads an MP3, analyzes beats, saves to IndexedDB, and starts gameplay.
+- **Sticky note song library**: Previously uploaded songs appear as overlapping **sticky notes** fanned at the bottom of the screen.
+  - Each note has a random pastel color (yellow, pink, blue, green, purple), a tape strip, the song's emoji, and truncated title.
+  - **Collapsed**: notes overlap in a fan layout at the bottom, showing emoji + title.
+  - **Peeked** (on hover): note slides up, revealing BPM and best score details.
+  - **Selected** (on click): note lifts to center, scales up, straightens, and shows a Play button.
+  - Clicking empty space deselects all notes.
+  - Up to 6 most recent songs are shown.
+- **Two play paths**: upload a new MP3, or click a sticky note to replay a saved song.
+- Songs are **persisted in IndexedDB** (MP3 blob + metadata). Best scores per song are stored in **localStorage**.
+- On return from gameplay, sticky notes reflect updated best scores and grades.
 
 ### 2. Gameplay
 

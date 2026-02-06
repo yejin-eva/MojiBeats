@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, NOTEBOOK } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { emitConfetti } from '../effects/Confetti.js';
+import { calculateGrade, saveScore } from '../storage/ScoreStore.js';
 
 export default class VictoryScene extends Phaser.Scene {
   constructor() {
@@ -9,7 +10,7 @@ export default class VictoryScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '' };
+    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '', songId: null };
   }
 
   create() {
@@ -18,6 +19,13 @@ export default class VictoryScene extends Phaser.Scene {
 
     this.drawNotebookGrid();
     this.time.delayedCall(500, () => emitConfetti(this));
+
+    const { score, maxCombo, accuracy, songId } = this.results;
+    const grade = calculateGrade(accuracy);
+
+    if (songId) {
+      saveScore(songId, { score, maxCombo, accuracy, grade });
+    }
 
     this.add.text(GAME_WIDTH / 2, 120, '🎉 🏆 ✨', {
       fontSize: '56px',
@@ -35,9 +43,6 @@ export default class VictoryScene extends Phaser.Scene {
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
-
-    const { score, maxCombo, accuracy } = this.results;
-    const grade = this.calculateGrade(accuracy);
 
     this.add.text(GAME_WIDTH / 2, 330, grade, {
       fontSize: '80px',
@@ -122,14 +127,6 @@ export default class VictoryScene extends Phaser.Scene {
       this.add.rectangle(x, GAME_HEIGHT / 2, 1, GAME_HEIGHT, NOTEBOOK.GRID_COLOR, NOTEBOOK.GRID_ALPHA);
     }
     this.add.rectangle(NOTEBOOK.MARGIN_X, GAME_HEIGHT / 2, 2, GAME_HEIGHT, NOTEBOOK.MARGIN_COLOR, NOTEBOOK.MARGIN_ALPHA);
-  }
-
-  calculateGrade(accuracy) {
-    if (accuracy >= 95) return 'S';
-    if (accuracy >= 85) return 'A';
-    if (accuracy >= 70) return 'B';
-    if (accuracy >= 50) return 'C';
-    return 'D';
   }
 
   gradeColor(grade) {

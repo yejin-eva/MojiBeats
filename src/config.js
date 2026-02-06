@@ -86,6 +86,36 @@ export const URGENCY = {
   START_PROGRESS: 0.3     // urgency tinting begins at 30% grow progress
 };
 
+// Sticky note UI
+export const STICKY_NOTE = {
+  COLORS: [
+    { bg: '#fff9c4', border: '#f9a825', text: '#5d4037' },  // yellow
+    { bg: '#fce4ec', border: '#e91e63', text: '#880e4f' },  // pink
+    { bg: '#e3f2fd', border: '#1976d2', text: '#0d47a1' },  // blue
+    { bg: '#e8f5e9', border: '#388e3c', text: '#1b5e20' },  // green
+    { bg: '#f3e5f5', border: '#7b1fa2', text: '#4a148c' },  // purple
+  ],
+  WIDTH: 170,
+  HEIGHT: 130,
+  COLLAPSED_Y: 660,
+  PEEK_Y: 580,
+  SELECTED_Y: 300,
+  SELECTED_SCALE: 1.8,
+  FAN_OVERLAP: 30,
+  MAX_VISIBLE: 6,
+  TILT_RANGE: 8,
+  PEEK_DURATION: 200,
+  LIFT_DURATION: 400,
+};
+
+// Storage
+export const STORAGE = {
+  DB_NAME: 'MojiBeats',
+  DB_VERSION: 1,
+  SONGS_STORE: 'songs',
+  SCORES_KEY: 'mojibeats_scores',
+};
+
 // Theme
 export const THEME_FONT = 'FriendlyScribbles';
 

@@ -24,6 +24,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.beats = data.beats || [];
     this.bpm = data.bpm || 0;
     this.songName = data.songName || 'Unknown';
+    this.songId = data.songId || null;
   }
 
   create() {
@@ -290,7 +291,8 @@ export default class GameplayScene extends Phaser.Scene {
       score: this.scoreState.score,
       maxCombo: this.scoreState.maxCombo,
       accuracy: getAccuracy(this.scoreState),
-      songName: this.songName
+      songName: this.songName,
+      songId: this.songId,
     };
   }
 
