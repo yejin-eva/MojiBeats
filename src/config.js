@@ -108,6 +108,13 @@ export const STICKY_NOTE = {
   LIFT_DURATION: 400,
 };
 
+// Difficulty levels (minSpacing controls beat density)
+export const DIFFICULTY = {
+  EASY:   { label: 'Easy',   minSpacing: 0.8, color: '#34d399' },
+  NORMAL: { label: 'Normal', minSpacing: 0.4, color: '#fbbf24' },
+  HARD:   { label: 'Hard',   minSpacing: 0.2, color: '#ef4444' },
+};
+
 // Storage
 export const STORAGE = {
   DB_NAME: 'MojiBeats',

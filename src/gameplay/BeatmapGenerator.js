@@ -6,12 +6,12 @@ import {
 const MARGIN_X = 100;
 const MARGIN_TOP = 120;
 const MARGIN_BOTTOM = 60;
-const MIN_SPACING = 0.4;
+const DEFAULT_MIN_SPACING = 0.4;
 
-export function filterBeats(beats, bpm) {
+export function filterBeats(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
   if (beats.length === 0) return [];
 
-  const beatInterval = bpm > 0 ? 60 / bpm : MIN_SPACING;
+  const beatInterval = bpm > 0 ? 60 / bpm : minSpacing;
   const snapWindow = beatInterval * 0.3;
 
   const gridBeats = [];
@@ -26,7 +26,7 @@ export function filterBeats(beats, bpm) {
   const selected = [];
 
   for (const beat of beats) {
-    if (selected.length > 0 && beat - selected[selected.length - 1] < MIN_SPACING) {
+    if (selected.length > 0 && beat - selected[selected.length - 1] < minSpacing) {
       continue;
     }
 
@@ -69,8 +69,8 @@ export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marg
   };
 }
 
-export function generateBeatmap(beats, bpm) {
-  const filtered = bpm ? filterBeats(beats, bpm) : beats;
+export function generateBeatmap(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
+  const filtered = bpm ? filterBeats(beats, bpm, minSpacing) : beats;
   if (filtered.length === 0) return [];
 
   const playWidth = GAME_WIDTH - MARGIN_X * 2;

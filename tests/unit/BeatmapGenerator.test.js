@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateBeatmap, filterBeats } from '../../src/gameplay/BeatmapGenerator.js';
-import { GROW_DURATION, EMOJI_POOL, TARGET_COLORS, GAME_WIDTH, GAME_HEIGHT } from '../../src/config.js';
+import { GROW_DURATION, EMOJI_POOL, TARGET_COLORS, GAME_WIDTH, GAME_HEIGHT, DIFFICULTY } from '../../src/config.js';
 
 describe('generateBeatmap', () => {
   const beats = [1.0, 2.0, 3.0, 4.0, 5.0];
@@ -116,5 +116,21 @@ describe('filterBeats', () => {
     // Only the anchor beat (0.5) survives; rest are off-grid
     expect(filtered.length).toBe(1);
     expect(filtered[0]).toBe(0.5);
+  });
+
+  it('Easy minSpacing produces fewer beats than Normal', () => {
+    const dense = [];
+    for (let t = 0.1; t < 10; t += 0.1) dense.push(t);
+    const easy = filterBeats(dense, 120, DIFFICULTY.EASY.minSpacing);
+    const normal = filterBeats(dense, 120, DIFFICULTY.NORMAL.minSpacing);
+    expect(easy.length).toBeLessThan(normal.length);
+  });
+
+  it('Hard minSpacing produces more beats than Normal', () => {
+    const dense = [];
+    for (let t = 0.1; t < 10; t += 0.1) dense.push(t);
+    const hard = filterBeats(dense, 120, DIFFICULTY.HARD.minSpacing);
+    const normal = filterBeats(dense, 120, DIFFICULTY.NORMAL.minSpacing);
+    expect(hard.length).toBeGreaterThan(normal.length);
   });
 });

@@ -26,6 +26,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.bpm = data.bpm || 0;
     this.songName = data.songName || 'Unknown';
     this.songId = data.songId || null;
+    this.minSpacing = data.minSpacing || 0.4;
   }
 
   create() {
@@ -69,7 +70,7 @@ export default class GameplayScene extends Phaser.Scene {
       color: '#9ca3af'
     }).setOrigin(0.5);
 
-    this.beatmap = generateBeatmap(this.beats, this.bpm);
+    this.beatmap = generateBeatmap(this.beats, this.bpm, this.minSpacing);
     console.log(`[MojiBeats] Beatmap: ${this.beatmap.length} targets (from ${this.beats.length} raw beats)`);
     this.nextSpawnIndex = 0;
     this.nextBeatIndex = 0;

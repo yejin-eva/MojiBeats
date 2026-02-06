@@ -108,7 +108,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
   listenForStickyEvents() {
     this.events.on('sticky-select', (songId) => this.onStickySelect(songId));
-    this.events.on('sticky-play', (songId) => this.playSavedSong(songId));
+    this.events.on('sticky-play', ({ songId, difficulty }) => this.playSavedSong(songId, difficulty));
     this.events.on('sticky-delete', (songId) => this.onStickyDelete(songId));
   }
 
@@ -193,8 +193,9 @@ export default class SongSelectScene extends Phaser.Scene {
     const hitAny = this.stickyNotes.some((note) => {
       const containerBounds = note.container.getBounds();
       if (containerBounds.contains(pointer.x, pointer.y)) return true;
-      const playBounds = note.playBtn.getBounds();
-      if (playBounds.contains(pointer.x, pointer.y)) return true;
+      for (const btn of note.diffBtns) {
+        if (btn.getBounds().contains(pointer.x, pointer.y)) return true;
+      }
       const delBounds = note.deleteBtn.getBounds();
       if (delBounds.contains(pointer.x, pointer.y)) return true;
       return false;
@@ -258,13 +259,12 @@ export default class SongSelectScene extends Phaser.Scene {
       console.log(`[MojiBeats] Detected ${beats.length} beats`);
       console.log(`[MojiBeats] Estimated BPM: ${bpm.toFixed(1)}`);
 
-      this.statusText.setText(
-        `${title}\n${beats.length} beats detected | ~${Math.round(bpm)} BPM`
-      );
+      this.statusText.setText('Pick a difficulty!');
+      this.uploadBtn.setVisible(true);
+      this.dropHint.setVisible(true);
 
-      pageFlipOut(this, () => {
-        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName: title, songId });
-      });
+      await this.loadSavedSongs();
+      this.onStickySelect(songId);
     } catch (err) {
       console.error('[MojiBeats] Audio load error:', err);
       this.statusText.setText('Error loading audio. Try another MP3.');
@@ -273,7 +273,9 @@ export default class SongSelectScene extends Phaser.Scene {
     }
   }
 
-  async playSavedSong(songId) {
+  async playSavedSong(songId, difficulty) {
+    const minSpacing = difficulty ? difficulty.minSpacing : 0.4;
+
     this.statusText.setText('Loading song...');
     this.uploadBtn.setVisible(false);
     this.dropHint.setVisible(false);
@@ -305,7 +307,7 @@ export default class SongSelectScene extends Phaser.Scene {
       await incrementPlayCount(songId);
 
       pageFlipOut(this, () => {
-        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId });
+        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing });
       });
     } catch (err) {
       console.error('[MojiBeats] Failed to load saved song:', err);

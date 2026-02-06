@@ -1,4 +1,4 @@
-import { STICKY_NOTE, GAME_WIDTH, THEME_FONT } from '../config.js';
+import { STICKY_NOTE, GAME_WIDTH, THEME_FONT, DIFFICULTY } from '../config.js';
 
 const STATE_COLLAPSED = 0;
 const STATE_PEEKED = 1;
@@ -58,19 +58,7 @@ export default class StickyNote {
 
     this.container.add([this.bgRect, this.tape, this.emojiText, this.titleText, this.detailText]);
 
-    this.playBtn = this.scene.add.text(0, 0, '▶ Play', {
-      fontSize: '16px',
-      fontFamily: THEME_FONT,
-      color: '#ffffff',
-      backgroundColor: '#ec4899',
-      padding: { x: 16, y: 6 },
-    }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
-
-    this.playBtn.on('pointerover', () => this.playBtn.setStyle({ backgroundColor: '#db2777' }));
-    this.playBtn.on('pointerout', () => this.playBtn.setStyle({ backgroundColor: '#ec4899' }));
-    this.playBtn.on('pointerdown', () => {
-      this.scene.events.emit('sticky-play', this.songData.id);
-    });
+    this.diffBtns = this.createDifficultyButtons();
 
     this.deleteBtn = this.scene.add.text(0, 0, '🗑️', {
       fontSize: '18px',
@@ -90,6 +78,33 @@ export default class StickyNote {
     }
     if (this.songData.grade) parts.push(this.songData.grade);
     return parts.join('\n') || '';
+  }
+
+  createDifficultyButtons() {
+    const diffs = [DIFFICULTY.EASY, DIFFICULTY.NORMAL, DIFFICULTY.HARD];
+    return diffs.map((diff) => {
+      const btn = this.scene.add.text(0, 0, diff.label, {
+        fontSize: '15px',
+        fontFamily: THEME_FONT,
+        color: '#ffffff',
+        backgroundColor: diff.color,
+        padding: { x: 14, y: 5 },
+      }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
+
+      const darken = (hex) => {
+        const n = parseInt(hex.slice(1), 16);
+        const r = Math.max(0, ((n >> 16) & 0xff) - 30);
+        const g = Math.max(0, ((n >> 8) & 0xff) - 30);
+        const b = Math.max(0, (n & 0xff) - 30);
+        return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+      };
+      btn.on('pointerover', () => btn.setStyle({ backgroundColor: darken(diff.color) }));
+      btn.on('pointerout', () => btn.setStyle({ backgroundColor: diff.color }));
+      btn.on('pointerdown', () => {
+        this.scene.events.emit('sticky-play', { songId: this.songData.id, difficulty: diff });
+      });
+      return btn;
+    });
   }
 
   positionCollapsed() {
@@ -186,13 +201,18 @@ export default class StickyNote {
       duration: LIFT_DURATION,
     });
 
-    this.scene.tweens.add({
-      targets: this.playBtn,
-      x: GAME_WIDTH / 2,
-      y: SELECTED_Y + scaledHalfH + 28,
-      alpha: 1,
-      duration: LIFT_DURATION,
-      ease: 'Back.easeOut',
+    const btnY = SELECTED_Y + scaledHalfH + 28;
+    const spacing = 100;
+    const startX = GAME_WIDTH / 2 - spacing;
+    this.diffBtns.forEach((btn, i) => {
+      this.scene.tweens.add({
+        targets: btn,
+        x: startX + i * spacing,
+        y: btnY,
+        alpha: 1,
+        duration: LIFT_DURATION,
+        ease: 'Back.easeOut',
+      });
     });
 
     this.scene.tweens.add({
@@ -211,11 +231,13 @@ export default class StickyNote {
 
     this.positionTarget();
 
-    this.scene.tweens.add({
-      targets: this.playBtn,
-      alpha: 0,
-      duration: 100,
-    });
+    for (const btn of this.diffBtns) {
+      this.scene.tweens.add({
+        targets: btn,
+        alpha: 0,
+        duration: 100,
+      });
+    }
     this.scene.tweens.add({
       targets: this.deleteBtn,
       alpha: 0,
@@ -249,7 +271,9 @@ export default class StickyNote {
 
   destroy() {
     this.container.destroy();
-    this.playBtn.destroy();
+    for (const btn of this.diffBtns) {
+      btn.destroy();
+    }
     this.deleteBtn.destroy();
   }
 }
