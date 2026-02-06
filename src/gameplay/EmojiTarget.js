@@ -1,5 +1,6 @@
 import { GROW_DURATION, EMOJI_TEXTURE } from '../config.js';
 import { getEmojiTextureKey, getOutlineTextureKey } from './EmojiCache.js';
+import { computeUrgencyTint } from './UrgencyColor.js';
 
 const STATE_GROWING = 'growing';
 const STATE_ACTIVE = 'active';
@@ -22,7 +23,7 @@ export default class EmojiTarget {
     const emojiKey = getEmojiTextureKey(event.emoji);
 
     this.outline = scene.add.image(event.x, event.y, outlineKey)
-      .setTint(event.color)
+      .setTint(computeUrgencyTint(0))
       .setAlpha(0.5)
       .setScale(EMOJI_TEXTURE.DISPLAY_SCALE);
 
@@ -39,6 +40,7 @@ export default class EmojiTarget {
 
     const scale = progress * EMOJI_TEXTURE.DISPLAY_SCALE;
     this.emoji.setScale(scale).setAlpha(Math.min(progress * 1.5, 1));
+    this.outline.setTint(computeUrgencyTint(progress));
 
     if (progress >= 1 && this.state === STATE_GROWING) {
       this.state = STATE_ACTIVE;

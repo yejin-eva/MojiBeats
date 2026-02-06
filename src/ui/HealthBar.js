@@ -11,8 +11,8 @@ export default class HealthBar {
 
     this.bg = scene.add.rectangle(
       BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2,
-      BAR_WIDTH, BAR_HEIGHT, 0x1a1a2e
-    ).setStrokeStyle(1, 0x333355);
+      BAR_WIDTH, BAR_HEIGHT, 0xe0daf0
+    ).setStrokeStyle(1, 0xc4b5fd);
 
     this.fill = scene.add.rectangle(
       BAR_X, BAR_Y,
@@ -28,7 +28,7 @@ export default class HealthBar {
       BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2, '100%', {
         fontSize: '12px',
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: '#4b5563'
       }
     ).setOrigin(0.5);
   }

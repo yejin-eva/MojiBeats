@@ -25,7 +25,7 @@ export default class GameplayScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#0a0a0f');
+    this.cameras.main.setBackgroundColor('#f5f0ff');
 
     this.healthState = createHealthState();
     this.scoreState = createScoreState();
@@ -37,31 +37,31 @@ export default class GameplayScene extends Phaser.Scene {
     this.add.text(20, 16, this.songName, {
       fontSize: '16px',
       fontFamily: 'Arial',
-      color: '#9ca3af'
+      color: '#6b7280'
     });
 
     this.scoreText = this.add.text(GAME_WIDTH - 20, 16, '0', {
       fontSize: '24px',
       fontFamily: 'Arial',
-      color: '#fbbf24'
+      color: '#d97706'
     }).setOrigin(1, 0);
 
     this.comboText = this.add.text(GAME_WIDTH - 20, 46, '', {
       fontSize: '16px',
       fontFamily: 'Arial',
-      color: '#a78bfa'
+      color: '#7c3aed'
     }).setOrigin(1, 0);
 
     this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
       fontSize: '32px',
       fontFamily: 'Arial',
-      color: '#ffffff'
+      color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
 
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to quit  |  Z/X to hit  |  Move mouse to aim', {
       fontSize: '14px',
       fontFamily: 'Arial',
-      color: '#4b5563'
+      color: '#9ca3af'
     }).setOrigin(0.5);
 
     this.beatmap = generateBeatmap(this.beats, this.bpm);
@@ -83,7 +83,7 @@ export default class GameplayScene extends Phaser.Scene {
       this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'No audio loaded', {
         fontSize: '36px',
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: '#6b7280'
       }).setOrigin(0.5);
     }
   }

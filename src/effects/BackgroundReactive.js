@@ -9,7 +9,7 @@ export default class BackgroundReactive {
     this.scene = scene;
 
     this.pulse = scene.add.circle(
-      GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 0x7c3aed, 0
+      GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 0xc4b5fd, 0
     );
 
     this.bars = [];
@@ -19,7 +19,7 @@ export default class BackgroundReactive {
         GAME_HEIGHT,
         BAR_WIDTH - 2,
         0,
-        0x7c3aed, 0.15
+        0xc4b5fd, 0.2
       ).setOrigin(0.5, 1);
       this.bars.push(bar);
     }

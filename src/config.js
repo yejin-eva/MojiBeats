@@ -62,7 +62,14 @@ export const EMOJI_TEXTURE = {
   FONT_SIZE: 64,
   DILATION_RADIUS: 3,
   FONT_FAMILY: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
-  DISPLAY_SCALE: 0.75
+  DISPLAY_SCALE: 1.125
+};
+
+// Urgency indicator: outline shifts color as beat time approaches
+export const URGENCY = {
+  COLOR_CALM: 0xc4b5fd,   // soft lavender (far from beat)
+  COLOR_URGENT: 0xf43f5e, // rose-red (imminent)
+  START_PROGRESS: 0.3     // urgency tinting begins at 30% grow progress
 };
 
 // Game dimensions
