@@ -6,6 +6,10 @@ export default class GameOverScene extends Phaser.Scene {
     super(SCENES.GAME_OVER);
   }
 
+  init(data) {
+    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '' };
+  }
+
   create() {
     this.cameras.main.setBackgroundColor('#fdf2f8');
 
@@ -25,13 +29,21 @@ export default class GameOverScene extends Phaser.Scene {
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 340, 'Score: 0  |  Max Combo: 0  |  Accuracy: 0%', {
-      fontSize: '20px',
+    const { score, maxCombo, accuracy } = this.results;
+
+    this.add.text(GAME_WIDTH / 2, 340, `Score: ${score.toLocaleString()}`, {
+      fontSize: '28px',
       fontFamily: 'Arial',
       color: '#374151'
     }).setOrigin(0.5);
 
-    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 440, 'Retry', {
+    this.add.text(GAME_WIDTH / 2, 380, `Max Combo: ${maxCombo}  |  Accuracy: ${accuracy}%`, {
+      fontSize: '20px',
+      fontFamily: 'Arial',
+      color: '#6b7280'
+    }).setOrigin(0.5);
+
+    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 460, 'Retry', {
       fontSize: '28px',
       fontFamily: 'Arial',
       color: '#ffffff',
@@ -39,9 +51,9 @@ export default class GameOverScene extends Phaser.Scene {
       padding: { x: 28, y: 12 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    retryBtn.on('pointerdown', () => this.scene.start(SCENES.GAMEPLAY));
+    retryBtn.on('pointerdown', () => this.scene.start(SCENES.SONG_SELECT));
 
-    const selectBtn = this.add.text(GAME_WIDTH / 2 + 120, 440, 'Song Select', {
+    const selectBtn = this.add.text(GAME_WIDTH / 2 + 120, 460, 'Song Select', {
       fontSize: '28px',
       fontFamily: 'Arial',
       color: '#ffffff',

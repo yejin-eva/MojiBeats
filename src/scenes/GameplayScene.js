@@ -2,8 +2,11 @@ import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
+import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
+import { createScoreState, applyHit, applyMiss, getAccuracy } from '../gameplay/ScoreSystem.js';
 import EmojiTarget from '../gameplay/EmojiTarget.js';
 import InputHandler from '../gameplay/InputHandler.js';
+import HealthBar from '../ui/HealthBar.js';
 
 export default class GameplayScene extends Phaser.Scene {
   constructor() {
@@ -20,11 +23,28 @@ export default class GameplayScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#0a0a0f');
 
+    this.healthState = createHealthState();
+    this.scoreState = createScoreState();
+
+    this.healthBar = new HealthBar(this);
+
     this.add.text(20, 16, this.songName, {
-      fontSize: '18px',
+      fontSize: '16px',
       fontFamily: 'Arial',
       color: '#9ca3af'
     });
+
+    this.scoreText = this.add.text(GAME_WIDTH - 20, 16, '0', {
+      fontSize: '24px',
+      fontFamily: 'Arial',
+      color: '#fbbf24'
+    }).setOrigin(1, 0);
+
+    this.comboText = this.add.text(GAME_WIDTH - 20, 46, '', {
+      fontSize: '16px',
+      fontFamily: 'Arial',
+      color: '#a78bfa'
+    }).setOrigin(1, 0);
 
     this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
       fontSize: '32px',
@@ -66,8 +86,7 @@ export default class GameplayScene extends Phaser.Scene {
     const currentTime = this.audioManager.getCurrentTime();
 
     if (!this.audioManager.playing && currentTime > 0) {
-      this.cleanupTargets();
-      this.scene.start(SCENES.VICTORY);
+      this.endSong();
       return;
     }
 
@@ -104,7 +123,7 @@ export default class GameplayScene extends Phaser.Scene {
       const offsetMs = target.getOffsetMs(currentTime);
       if (offsetMs > TIMING.GOOD) {
         target.miss();
-        this.showJudgment('Miss', '#ef4444');
+        this.onMiss();
         this.activeTargets.splice(i, 1);
       }
     }
@@ -139,26 +158,72 @@ export default class GameplayScene extends Phaser.Scene {
     const idx = this.activeTargets.indexOf(closest);
     if (idx !== -1) this.activeTargets.splice(idx, 1);
 
-    const colors = {
-      perfect: '#fbbf24',
-      great: '#34d399',
-      good: '#60a5fa'
-    };
-    this.showJudgment(result.charAt(0).toUpperCase() + result.slice(1), colors[result]);
+    this.onHit(result);
+  }
+
+  onHit(tier) {
+    this.scoreState = applyHit(this.scoreState, tier);
+    const prevHp = this.healthState.hp;
+    this.healthState = applyComboHeal(this.healthState, this.scoreState.combo);
+
+    if (this.healthState.hp > prevHp) {
+      this.healthBar.showHeal();
+    }
+
+    this.healthBar.update(this.healthState.hp);
+    this.updateHUD();
+
+    const colors = { perfect: '#fbbf24', great: '#34d399', good: '#60a5fa' };
+    this.showJudgment(tier.charAt(0).toUpperCase() + tier.slice(1), colors[tier]);
+  }
+
+  onMiss() {
+    this.scoreState = applyMiss(this.scoreState);
+    this.healthState = applyDamage(this.healthState);
+
+    this.healthBar.update(this.healthState.hp);
+    this.healthBar.showDamage();
+    this.updateHUD();
+    this.showJudgment('Miss', '#ef4444');
+
+    if (isDead(this.healthState)) {
+      this.stopAudio();
+      this.scene.start(SCENES.GAME_OVER, this.getResults());
+    }
+  }
+
+  updateHUD() {
+    this.scoreText.setText(this.scoreState.score.toLocaleString());
+    if (this.scoreState.combo > 1) {
+      this.comboText.setText(`${this.scoreState.combo}x combo`);
+    } else {
+      this.comboText.setText('');
+    }
   }
 
   showJudgment(text, color) {
-    this.judgmentText.setText(text).setColor(color).setAlpha(1);
+    this.judgmentText.setText(text).setColor(color).setAlpha(1).setY(GAME_HEIGHT - 80);
     this.tweens.add({
       targets: this.judgmentText,
       alpha: 0,
       y: GAME_HEIGHT - 100,
       duration: 400,
-      ease: 'Power2',
-      onComplete: () => {
-        this.judgmentText.setY(GAME_HEIGHT - 80);
-      }
+      ease: 'Power2'
     });
+  }
+
+  getResults() {
+    return {
+      score: this.scoreState.score,
+      maxCombo: this.scoreState.maxCombo,
+      accuracy: getAccuracy(this.scoreState),
+      songName: this.songName
+    };
+  }
+
+  endSong() {
+    this.cleanupTargets();
+    this.scene.start(SCENES.VICTORY, this.getResults());
   }
 
   cleanupTargets() {

@@ -6,6 +6,10 @@ export default class VictoryScene extends Phaser.Scene {
     super(SCENES.VICTORY);
   }
 
+  init(data) {
+    this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '' };
+  }
+
   create() {
     this.cameras.main.setBackgroundColor('#f0fdf4');
 
@@ -25,13 +29,28 @@ export default class VictoryScene extends Phaser.Scene {
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 340, 'Score: 0  |  Max Combo: 0  |  Accuracy: 0%', {
-      fontSize: '20px',
+    const { score, maxCombo, accuracy } = this.results;
+    const grade = this.calculateGrade(accuracy);
+
+    this.add.text(GAME_WIDTH / 2, 320, grade, {
+      fontSize: '64px',
+      fontFamily: 'Arial',
+      color: this.gradeColor(grade)
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, 390, `Score: ${score.toLocaleString()}`, {
+      fontSize: '28px',
       fontFamily: 'Arial',
       color: '#374151'
     }).setOrigin(0.5);
 
-    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 440, 'Retry', {
+    this.add.text(GAME_WIDTH / 2, 430, `Max Combo: ${maxCombo}  |  Accuracy: ${accuracy}%`, {
+      fontSize: '20px',
+      fontFamily: 'Arial',
+      color: '#6b7280'
+    }).setOrigin(0.5);
+
+    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 510, 'Retry', {
       fontSize: '28px',
       fontFamily: 'Arial',
       color: '#ffffff',
@@ -39,9 +58,9 @@ export default class VictoryScene extends Phaser.Scene {
       padding: { x: 28, y: 12 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    retryBtn.on('pointerdown', () => this.scene.start(SCENES.GAMEPLAY));
+    retryBtn.on('pointerdown', () => this.scene.start(SCENES.SONG_SELECT));
 
-    const selectBtn = this.add.text(GAME_WIDTH / 2 + 120, 440, 'Song Select', {
+    const selectBtn = this.add.text(GAME_WIDTH / 2 + 120, 510, 'Song Select', {
       fontSize: '28px',
       fontFamily: 'Arial',
       color: '#ffffff',
@@ -50,5 +69,18 @@ export default class VictoryScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     selectBtn.on('pointerdown', () => this.scene.start(SCENES.SONG_SELECT));
+  }
+
+  calculateGrade(accuracy) {
+    if (accuracy >= 95) return 'S';
+    if (accuracy >= 85) return 'A';
+    if (accuracy >= 70) return 'B';
+    if (accuracy >= 50) return 'C';
+    return 'D';
+  }
+
+  gradeColor(grade) {
+    const colors = { S: '#fbbf24', A: '#34d399', B: '#60a5fa', C: '#a78bfa', D: '#6b7280' };
+    return colors[grade] || '#6b7280';
   }
 }
