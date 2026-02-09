@@ -75,7 +75,7 @@ export function scatterDoodles(scene) {
     const pad = 40;
     const x = pad + Math.random() * (GAME_WIDTH - pad * 2);
     const y = pad + Math.random() * (GAME_HEIGHT - pad * 2);
-    const scale = 0.4 + Math.random() * 0.4;
+    const scale = 0.6 + Math.random() * 0.5;
     const angle = (Math.random() - 0.5) * 30;
 
     const doodle = scene.add.image(x, y, `doodle_${texIdx}`)
