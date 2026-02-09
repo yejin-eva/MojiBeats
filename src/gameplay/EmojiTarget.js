@@ -82,7 +82,26 @@ export default class EmojiTarget {
 
   hit() {
     this.state = STATE_HIT;
-    this.destroy();
+    if (this.outline) {
+      this.outline.destroy();
+      this.outline = null;
+    }
+
+    if (!this.emoji) { this.destroy(); return; }
+
+    const jerkX = (Math.random() - 0.5) * 8;
+    const jerkY = -3 + Math.random() * 2;
+
+    this.scene.tweens.add({
+      targets: this.emoji,
+      scaleX: EMOJI_TEXTURE.DISPLAY_SCALE * 0.3,
+      scaleY: EMOJI_TEXTURE.DISPLAY_SCALE * 0.3,
+      x: this.x + jerkX,
+      y: this.y + jerkY,
+      duration: 80,
+      ease: 'Power2',
+      onComplete: () => this.destroy()
+    });
   }
 
   miss() {

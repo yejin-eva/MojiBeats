@@ -229,7 +229,7 @@ export default class GameplayScene extends Phaser.Scene {
     const prevHp = this.healthState.hp;
     this.healthState = applyComboHeal(this.healthState, this.scoreState.combo);
 
-    emitBurst(this, x, y, color, emoji);
+    this.time.delayedCall(80, () => emitBurst(this, x, y, color, emoji));
     showCombo(this, x, y, this.scoreState.combo, color);
 
     if (this.healthState.hp > prevHp) {
