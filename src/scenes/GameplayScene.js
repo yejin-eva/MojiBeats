@@ -350,7 +350,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.time.paused = false;
     this.tweens.resumeAll();
     this.stopAudio();
-    pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT));
+    pageFlipOut(this, () => this.scene.start(SCENES.SONG_SELECT, {}));
   }
 
   showPauseOverlay() {
