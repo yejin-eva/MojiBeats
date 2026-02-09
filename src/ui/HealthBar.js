@@ -1,4 +1,4 @@
-import { GAME_WIDTH, HEALTH } from '../config.js';
+import { GAME_WIDTH, HEALTH, THEME } from '../config.js';
 
 const BAR_WIDTH = 400;
 const BAR_HEIGHT = 16;
@@ -16,7 +16,7 @@ export default class HealthBar {
 
     this.fill = scene.add.rectangle(
       BAR_X, BAR_Y,
-      BAR_WIDTH, BAR_HEIGHT, 0x7c3aed
+      BAR_WIDTH, BAR_HEIGHT, THEME.PRIMARY_HEX
     ).setOrigin(0, 0);
 
     this.damageFlash = scene.add.rectangle(
@@ -47,7 +47,7 @@ export default class HealthBar {
     this.hpText.setText(`${Math.round(hp)}%`);
 
     if (ratio > 0.5) {
-      this.fill.setFillStyle(0x7c3aed);
+      this.fill.setFillStyle(THEME.PRIMARY_HEX);
     } else if (ratio > 0.25) {
       this.fill.setFillStyle(0xf59e0b);
     } else {

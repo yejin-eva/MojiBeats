@@ -1,5 +1,8 @@
 import { EMOJI_POOL, EMOJI_TEXTURE } from '../config.js';
 
+export const FRAGMENT_COLS = 6;
+export const FRAGMENT_ROWS = 6;
+
 export function getEmojiTextureKey(emoji) {
   const index = EMOJI_POOL.indexOf(emoji);
   return `emoji_filled_${index}`;
@@ -8,6 +11,18 @@ export function getEmojiTextureKey(emoji) {
 export function getOutlineTextureKey(emoji) {
   const index = EMOJI_POOL.indexOf(emoji);
   return `emoji_outline_${index}`;
+}
+
+export function getFragmentKeys(emoji) {
+  const index = EMOJI_POOL.indexOf(emoji);
+  const keys = [];
+  for (let r = 0; r < FRAGMENT_ROWS; r++) {
+    for (let c = 0; c < FRAGMENT_COLS; c++) {
+      const key = `emoji_frag_${index}_${r}_${c}`;
+      keys.push({ key, col: c, row: r });
+    }
+  }
+  return keys;
 }
 
 export function generateOutlineData(imageData, canvasSize, dilationRadius) {
@@ -83,5 +98,30 @@ export function cacheEmojiTextures(scene) {
     outlineCtx.putImageData(outlineImageData, 0, 0);
 
     scene.textures.addCanvas(outlineKey, outlineCanvas);
+
+    // Generate fragment textures for shatter effect
+    const fragW = CANVAS_SIZE / FRAGMENT_COLS;
+    const fragH = CANVAS_SIZE / FRAGMENT_ROWS;
+    for (let r = 0; r < FRAGMENT_ROWS; r++) {
+      for (let c = 0; c < FRAGMENT_COLS; c++) {
+        const fragKey = `emoji_frag_${index}_${r}_${c}`;
+        const sx = c * fragW;
+        const sy = r * fragH;
+
+        const fragData = filledCtx.getImageData(sx, sy, fragW, fragH);
+        let hasPixels = false;
+        for (let i = 3; i < fragData.data.length; i += 4) {
+          if (fragData.data[i] > 30) { hasPixels = true; break; }
+        }
+
+        const fragCanvas = document.createElement('canvas');
+        fragCanvas.width = fragW;
+        fragCanvas.height = fragH;
+        if (hasPixels) {
+          fragCanvas.getContext('2d').drawImage(filledCanvas, sx, sy, fragW, fragH, 0, 0, fragW, fragH);
+        }
+        scene.textures.addCanvas(fragKey, fragCanvas);
+      }
+    }
   });
 }

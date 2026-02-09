@@ -215,20 +215,21 @@ export default class GameplayScene extends Phaser.Scene {
     const hitX = closest.x;
     const hitY = closest.y;
     const hitColor = closest.color;
+    const hitEmoji = closest.emojiChar;
 
     closest.hit();
     const idx = this.activeTargets.indexOf(closest);
     if (idx !== -1) this.activeTargets.splice(idx, 1);
 
-    this.onHit(result, hitX, hitY, hitColor);
+    this.onHit(result, hitX, hitY, hitColor, hitEmoji);
   }
 
-  onHit(tier, x, y, color) {
+  onHit(tier, x, y, color, emoji) {
     this.scoreState = applyHit(this.scoreState, tier);
     const prevHp = this.healthState.hp;
     this.healthState = applyComboHeal(this.healthState, this.scoreState.combo);
 
-    emitBurst(this, x, y, color);
+    emitBurst(this, x, y, color, emoji);
     showCombo(this, x, y, this.scoreState.combo, color);
 
     if (this.healthState.hp > prevHp) {

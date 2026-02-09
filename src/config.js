@@ -136,9 +136,9 @@ export const YOUTUBE = {
 
 // Theme
 export const THEME = {
-  PRIMARY: '#a78bfa',
-  PRIMARY_HOVER: '#8b5cf6',
-  PRIMARY_HEX: 0xa78bfa,
+  PRIMARY: '#7c3aed',
+  PRIMARY_HOVER: '#6d28d9',
+  PRIMARY_HEX: 0x7c3aed,
 };
 
 export const THEME_FONT = 'FriendlyScribbles';
