@@ -61,7 +61,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.events.on('shutdown', () => this.removeHtmlElements());
 
     if (this.retryData.retrySongId) {
-      this.playSavedSong(this.retryData.retrySongId, { minSpacing: this.retryData.retryMinSpacing });
+      this.playSavedSong(this.retryData.retrySongId, { minSpacing: this.retryData.retryMinSpacing, sensitivity: this.retryData.retrySensitivity });
     }
   }
 
@@ -545,6 +545,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
   async playSavedSong(songId, difficulty) {
     const minSpacing = difficulty ? difficulty.minSpacing : 0.4;
+    const sensitivity = difficulty ? difficulty.sensitivity : {};
 
     this.statusText.setText('Loading song...');
     this.uploadBtn.setVisible(false);
@@ -593,7 +594,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
         const channelData = audioManager.getChannelData();
         const sampleRate = audioManager.getSampleRate();
-        const analysis = analyzeBeats(channelData, sampleRate);
+        const analysis = analyzeBeats(channelData, sampleRate, sensitivity);
         beats = analysis.beats;
         bpm = analysis.bpm;
       }
@@ -602,7 +603,7 @@ export default class SongSelectScene extends Phaser.Scene {
       this.hideLoadingSpinner();
 
       pageFlipOut(this, () => {
-        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing });
+        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing, sensitivity });
       });
     } catch (err) {
       console.error('[MojiBeats] Failed to load saved song:', err);

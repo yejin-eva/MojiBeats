@@ -14,6 +14,7 @@ export default class VictoryScene extends Phaser.Scene {
     this.results = data || { score: 0, maxCombo: 0, accuracy: 0, songName: '', songId: null, minSpacing: 0.4 };
     this.retrySongId = this.results.songId;
     this.retryMinSpacing = this.results.minSpacing || 0.4;
+    this.retrySensitivity = this.results.sensitivity || {};
   }
 
   create() {
@@ -97,6 +98,7 @@ export default class VictoryScene extends Phaser.Scene {
     retryBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT, {
       retrySongId: this.retrySongId,
       retryMinSpacing: this.retryMinSpacing,
+      retrySensitivity: this.retrySensitivity,
     }));
 
     const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 520, 'Song Select', {

@@ -73,10 +73,12 @@ export const EMOJI_TEXTURE = {
   DISPLAY_SCALE: 1.5
 };
 
-// Spatial proximity: close beats spawn near each other
+// Spatial proximity: beat timing maps to screen distance
 export const PROXIMITY = {
-  MAX_DRIFT: 150,       // max px offset when beats are back-to-back
-  FULL_RANDOM_GAP: 2.0  // seconds apart before positions are fully random
+  PX_PER_SECOND: GAME_WIDTH * 0.23,  // ~23% of width per second of gap
+  MAX_STEP: GAME_WIDTH * 0.31,       // cap at ~31% of width per step
+  BREAK_GAP: 2.0,                    // seconds: gaps above this jump to a new area
+  WANDER_RATE: 0.6,                  // radians of heading drift per step (randomized ±)
 };
 
 // Urgency indicator: outline shifts color as beat time approaches
@@ -112,11 +114,11 @@ export const STICKY_NOTE = {
   LIFT_DURATION: 400,
 };
 
-// Difficulty levels (minSpacing controls beat density)
+// Difficulty levels (minSpacing + sensitivity control beat density)
 export const DIFFICULTY = {
-  EASY:   { label: 'Easy',   minSpacing: 0.8, color: '#34d399' },
-  NORMAL: { label: 'Normal', minSpacing: 0.4, color: '#fbbf24' },
-  HARD:   { label: 'Hard',   minSpacing: 0.2, color: '#ef4444' },
+  EASY:   { label: 'Easy',   minSpacing: 0.8, sensitivity: { thresholdMultiplier: 2.2, minPeakInterval: 0.3, useGrid: true },   color: '#34d399' },
+  NORMAL: { label: 'Normal', minSpacing: 0.4, sensitivity: { thresholdMultiplier: 1.8, minPeakInterval: 0.15, useGrid: true },  color: '#fbbf24' },
+  HARD:   { label: 'Hard',   minSpacing: 0.2, sensitivity: { thresholdMultiplier: 1.0, minPeakInterval: 0.1, useGrid: false },  color: '#ef4444' },
 };
 
 // Storage

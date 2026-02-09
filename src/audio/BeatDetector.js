@@ -10,22 +10,33 @@ export function detectBeats(channelData, sampleRate) {
   return onsets;
 }
 
-export function analyzeBeats(channelData, sampleRate) {
+export function analyzeBeats(channelData, sampleRate, sensitivity = {}) {
+  const thresholdMultiplier = sensitivity.thresholdMultiplier || 1.8;
+  const minPeakInterval = sensitivity.minPeakInterval || 0.15;
+  const useGrid = sensitivity.useGrid !== false;
+
   const bands = computeSpectralFluxBands(channelData, sampleRate);
   if (bands.bass.length === 0) return { beats: [], bpm: 0 };
 
   const fluxRhythm = combineFlux(bands, 3.0, 0.3, 0.1);
   const fluxFull = combineFlux(bands, 1.5, 1.5, 0.3);
 
-  const threshold = computeAdaptiveThreshold(fluxFull);
-  const onsets = pickPeaks(fluxFull, threshold, sampleRate);
+  const threshold = computeAdaptiveThreshold(fluxFull, thresholdMultiplier);
+  const onsets = pickPeaks(fluxFull, threshold, sampleRate, minPeakInterval);
   if (onsets.length < 2) return { beats: onsets, bpm: 0 };
 
   const bpm = estimateBpmFromFlux(fluxRhythm, sampleRate);
-  console.log(`[BeatDetector] Comb filter BPM: ${bpm.toFixed(1)} from ${onsets.length} onsets`);
+
+  let beats;
+  if (useGrid) {
+    beats = buildPhaseAlignedGrid(onsets, fluxFull, bpm, sampleRate);
+  } else {
+    beats = onsets;
+  }
+
+  console.log(`[BeatDetector] BPM: ${bpm.toFixed(1)}, onsets: ${onsets.length}, beats: ${beats.length} (grid: ${useGrid})`);
   if (bpm <= 0) return { beats: onsets, bpm: 0 };
 
-  const beats = buildPhaseAlignedGrid(onsets, fluxFull, bpm, sampleRate);
   return { beats, bpm };
 }
 
@@ -346,9 +357,8 @@ function computeMagnitudeSpectrum(channelData, offset) {
   return magnitudes;
 }
 
-function computeAdaptiveThreshold(flux) {
+function computeAdaptiveThreshold(flux, multiplier = 1.8) {
   const windowSize = 43;
-  const multiplier = 1.8;
   const threshold = new Float64Array(flux.length);
 
   for (let i = 0; i < flux.length; i++) {
@@ -365,8 +375,7 @@ function computeAdaptiveThreshold(flux) {
   return threshold;
 }
 
-function pickPeaks(flux, threshold, sampleRate) {
-  const minInterval = 0.15;
+function pickPeaks(flux, threshold, sampleRate, minInterval = 0.15) {
   const peaks = [];
 
   for (let i = 1; i < flux.length - 1; i++) {

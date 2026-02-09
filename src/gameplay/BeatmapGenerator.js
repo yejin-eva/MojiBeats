@@ -3,9 +3,9 @@ import {
   GAME_WIDTH, GAME_HEIGHT, PROXIMITY
 } from '../config.js';
 
-const MARGIN_X = 100;
-const MARGIN_TOP = 120;
-const MARGIN_BOTTOM = 60;
+const MARGIN_X = Math.round(GAME_WIDTH * 0.12);
+const MARGIN_TOP = Math.round(GAME_HEIGHT * 0.19);
+const MARGIN_BOTTOM = Math.round(GAME_HEIGHT * 0.11);
 const DEFAULT_MIN_SPACING = 0.4;
 
 export function filterBeats(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
@@ -47,26 +47,49 @@ export function filterBeats(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
   return selected;
 }
 
-export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marginX, marginTop) {
-  const randX = marginX + Math.random() * playWidth;
-  const randY = marginTop + Math.random() * playHeight;
+export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marginX, marginTop, heading) {
+  if (!prev || timeDelta >= PROXIMITY.BREAK_GAP) {
+    const pad = 0.15;
+    return {
+      x: marginX + playWidth * pad + Math.random() * playWidth * (1 - 2 * pad),
+      y: marginTop + playHeight * pad + Math.random() * playHeight * (1 - 2 * pad),
+      heading: Math.random() * Math.PI * 2
+    };
+  }
 
-  if (!prev) return { x: randX, y: randY };
+  const dist = Math.min(timeDelta * PROXIMITY.PX_PER_SECOND, PROXIMITY.MAX_STEP);
+  const drift = (Math.random() - 0.5) * 2 * PROXIMITY.WANDER_RATE;
+  let newHeading = heading + drift;
 
-  const t = Math.min(timeDelta / PROXIMITY.FULL_RANDOM_GAP, 1);
+  const minX = marginX;
+  const maxX = marginX + playWidth;
+  const minY = marginTop;
+  const maxY = marginTop + playHeight;
+  const centerX = marginX + playWidth / 2;
+  const centerY = marginTop + playHeight / 2;
 
-  const angle = Math.random() * Math.PI * 2;
-  const dist = Math.random() * PROXIMITY.MAX_DRIFT;
-  const driftX = prev.x + Math.cos(angle) * dist;
-  const driftY = prev.y + Math.sin(angle) * dist;
+  const edgePull = 0.25;
+  const xNorm = (prev.x - centerX) / (playWidth / 2);
+  const yNorm = (prev.y - centerY) / (playHeight / 2);
+  const pullAngle = Math.atan2(-yNorm, -xNorm);
+  const edgeProximity = Math.max(Math.abs(xNorm), Math.abs(yNorm));
+  const pullStrength = Math.pow(Math.max(0, edgeProximity - 0.5) * 2, 2) * edgePull;
+  newHeading = newHeading + pullStrength * angleDiff(newHeading, pullAngle);
 
-  const rawX = driftX + (randX - driftX) * t;
-  const rawY = driftY + (randY - driftY) * t;
+  let nx = prev.x + Math.cos(newHeading) * dist;
+  let ny = prev.y + Math.sin(newHeading) * dist;
 
-  return {
-    x: Math.max(marginX, Math.min(marginX + playWidth, rawX)),
-    y: Math.max(marginTop, Math.min(marginTop + playHeight, rawY))
-  };
+  nx = Math.max(minX, Math.min(maxX, nx));
+  ny = Math.max(minY, Math.min(maxY, ny));
+
+  return { x: nx, y: ny, heading: newHeading };
+}
+
+function angleDiff(from, to) {
+  let d = to - from;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return d;
 }
 
 export function generateYouTubeBeats(bpm, duration) {
@@ -86,9 +109,11 @@ export function generateBeatmap(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
   const playHeight = GAME_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
 
   let prev = null;
+  let heading = Math.random() * Math.PI * 2;
   return filtered.map((beatTime, i) => {
     const timeDelta = prev ? beatTime - prev.beatTime : 0;
-    const pos = computeNextPosition(prev, timeDelta, playWidth, playHeight, MARGIN_X, MARGIN_TOP);
+    const pos = computeNextPosition(prev, timeDelta, playWidth, playHeight, MARGIN_X, MARGIN_TOP, heading);
+    heading = pos.heading;
 
     const event = {
       beatTime,
