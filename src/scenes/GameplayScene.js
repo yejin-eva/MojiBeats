@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, THEME, NOTEBOOK } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, THEME, NOTEBOOK, DIFFICULTY } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
 import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
@@ -42,19 +42,36 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.healthBar = new HealthBar(this);
 
-    this.add.text(20, 48, this.songName, {
+    const titleText = this.add.text(20, 48, this.songName, {
       fontSize: '28px',
       fontFamily: THEME_FONT,
       color: '#5b6abf'
     });
 
-    this.scoreText = this.add.text(GAME_WIDTH - 20, 48, '0', {
+    this.add.text(GAME_WIDTH - 20, 38, '⏸️ ESC pause  |  ⌨️ SPACE/Z/X hit  |  🖱️ Mouse aim', {
+      fontSize: '16px',
+      fontFamily: THEME_FONT,
+      color: '#7c8a9a'
+    }).setOrigin(1, 0);
+
+    this.scoreText = this.add.text(GAME_WIDTH - 20, 56, '0', {
       fontSize: '32px',
       fontFamily: THEME_FONT,
       color: '#d97706'
     }).setOrigin(1, 0);
 
-    this.comboText = this.add.text(GAME_WIDTH - 20, 82, '', {
+    this.diffText = null;
+    if (this.difficultyKey && DIFFICULTY[this.difficultyKey]) {
+      const diff = DIFFICULTY[this.difficultyKey];
+      this.diffText = this.add.text(0, 56, diff.label, {
+        fontSize: '32px',
+        fontFamily: THEME_FONT,
+        color: diff.color
+      }).setOrigin(1, 0);
+      this.diffText.setX(this.scoreText.x - this.scoreText.width - 12);
+    }
+
+    this.comboText = this.add.text(GAME_WIDTH - 20, 90, '', {
       fontSize: '22px',
       fontFamily: THEME_FONT,
       color: THEME.PRIMARY
@@ -65,12 +82,6 @@ export default class GameplayScene extends Phaser.Scene {
       fontFamily: THEME_FONT,
       color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
-
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'ESC to pause  |  SPACE/Z/X to hit  |  Move mouse to aim', {
-      fontSize: '14px',
-      fontFamily: 'Arial',
-      color: '#9ca3af'
-    }).setOrigin(0.5);
 
     this.beatmap = generateBeatmap(this.beats, this.bpm, this.minSpacing);
     console.log(`[MojiBeats] Beatmap: ${this.beatmap.length} targets (from ${this.beats.length} raw beats)`);
@@ -271,6 +282,9 @@ export default class GameplayScene extends Phaser.Scene {
 
   updateHUD() {
     this.scoreText.setText(this.scoreState.score.toLocaleString());
+    if (this.diffText) {
+      this.diffText.setX(this.scoreText.x - this.scoreText.width - 12);
+    }
     if (this.scoreState.combo > 1) {
       this.comboText.setText(`${this.scoreState.combo}x combo`);
     } else {

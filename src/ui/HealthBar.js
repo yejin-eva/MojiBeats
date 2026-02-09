@@ -1,6 +1,6 @@
 import { GAME_WIDTH, HEALTH, THEME } from '../config.js';
 
-const BAR_WIDTH = 400;
+const BAR_WIDTH = Math.round(GAME_WIDTH * 0.6);
 const BAR_HEIGHT = 16;
 const BAR_X = (GAME_WIDTH - BAR_WIDTH) / 2;
 const BAR_Y = 14;
@@ -9,20 +9,20 @@ export default class HealthBar {
   constructor(scene) {
     this.scene = scene;
 
-    this.bg = scene.add.rectangle(
-      BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2,
-      BAR_WIDTH, BAR_HEIGHT, 0xe0daf0
-    ).setStrokeStyle(1, 0xc4b5fd);
+    const RADIUS = 6;
 
-    this.fill = scene.add.rectangle(
-      BAR_X, BAR_Y,
-      BAR_WIDTH, BAR_HEIGHT, THEME.PRIMARY_HEX
-    ).setOrigin(0, 0);
+    this.bgGfx = scene.add.graphics();
+    this.bgGfx.fillStyle(0xe0daf0);
+    this.bgGfx.fillRoundedRect(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, RADIUS);
+    this.bgGfx.lineStyle(1, 0xc4b5fd);
+    this.bgGfx.strokeRoundedRect(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, RADIUS);
 
-    this.damageFlash = scene.add.rectangle(
-      BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2,
-      BAR_WIDTH, BAR_HEIGHT, 0xff0000, 0
-    );
+    this.fillGfx = scene.add.graphics();
+    this.fillWidth = BAR_WIDTH;
+    this.radius = RADIUS;
+    this.drawFill(BAR_WIDTH, THEME.PRIMARY_HEX);
+
+    this.damageGfx = scene.add.graphics().setAlpha(0);
 
     this.hpText = scene.add.text(
       BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2, '100%', {
@@ -33,32 +33,46 @@ export default class HealthBar {
     ).setOrigin(0.5);
   }
 
+  drawFill(width, color) {
+    this.fillGfx.clear();
+    if (width < 1) return;
+    this.fillGfx.fillStyle(color);
+    this.fillGfx.fillRoundedRect(BAR_X, BAR_Y, width, BAR_HEIGHT, this.radius);
+  }
+
   update(hp) {
     const ratio = hp / HEALTH.MAX;
     const targetWidth = BAR_WIDTH * ratio;
 
+    let color;
+    if (ratio > 0.5) {
+      color = THEME.PRIMARY_HEX;
+    } else if (ratio > 0.25) {
+      color = 0xf59e0b;
+    } else {
+      color = 0xef4444;
+    }
+
+    this.targetFillWidth = targetWidth;
+    this.fillColor = color;
     this.scene.tweens.add({
-      targets: this.fill,
-      displayWidth: targetWidth,
+      targets: this,
+      fillWidth: targetWidth,
       duration: 150,
-      ease: 'Power2'
+      ease: 'Power2',
+      onUpdate: () => this.drawFill(this.fillWidth, this.fillColor),
     });
 
     this.hpText.setText(`${Math.round(hp)}%`);
-
-    if (ratio > 0.5) {
-      this.fill.setFillStyle(THEME.PRIMARY_HEX);
-    } else if (ratio > 0.25) {
-      this.fill.setFillStyle(0xf59e0b);
-    } else {
-      this.fill.setFillStyle(0xef4444);
-    }
   }
 
   showDamage() {
-    this.damageFlash.setAlpha(0.6);
+    this.damageGfx.clear();
+    this.damageGfx.fillStyle(0xff0000);
+    this.damageGfx.fillRoundedRect(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, this.radius);
+    this.damageGfx.setAlpha(0.6);
     this.scene.tweens.add({
-      targets: this.damageFlash,
+      targets: this.damageGfx,
       alpha: 0,
       duration: 200,
       ease: 'Power2'
@@ -85,9 +99,9 @@ export default class HealthBar {
   }
 
   destroy() {
-    this.bg.destroy();
-    this.fill.destroy();
-    this.damageFlash.destroy();
+    this.bgGfx.destroy();
+    this.fillGfx.destroy();
+    this.damageGfx.destroy();
     this.hpText.destroy();
   }
 }
