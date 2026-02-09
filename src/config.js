@@ -12,7 +12,7 @@ export const TIMING = {
 // Health system
 export const HEALTH = {
   MAX: 100,
-  DAMAGE_PER_MISS: 7,
+  DAMAGE_PER_MISS: 10,
   COMBO_HEAL_AMOUNT: 5,
   COMBO_HEAL_THRESHOLD: 10
 };
