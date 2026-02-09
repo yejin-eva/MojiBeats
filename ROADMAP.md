@@ -11,7 +11,9 @@
 | 5     | Visual Effects         | Done   | Particle burst, bleed, combo text, reactive bg |
 | 6     | Song Library           | Done   | IndexedDB storage, upload flow, song select UI |
 | 7     | Polish & Juice         | Done   | Animations, transitions, scoring, grade system |
-| 8     | YouTube Support        | —      | YouTube link audio extraction (stretch goal)  |
+| 8     | YouTube Support        | Done   | Play songs from YouTube URLs via IFrame API   |
+| 9     | Beat Detection v2      | Done   | Comb filter BPM, dual-band flux, per-difficulty sensitivity |
+| 10    | Spatial & Scoring      | Done   | Wandering path positioning, per-difficulty scores |
 
 ---
 
@@ -157,21 +159,67 @@
 
 ---
 
-## Phase 8: YouTube Support (Stretch)
+## Phase 8: YouTube Support
 
-**Goal**: Play songs directly from YouTube links.
+**Goal**: Play songs from YouTube URLs using IFrame Player API.
 
-- [ ] Research YouTube audio extraction options
-  - [ ] Evaluate: server-side proxy vs third-party API
-  - [ ] CORS and legal considerations
-- [ ] Implement `YouTubeLoader.js`
-  - [ ] Accept YouTube URL
-  - [ ] Extract/fetch audio stream
-  - [ ] Decode to AudioBuffer
-- [ ] Integrate with SongSelectScene
-  - [ ] YouTube URL input field
-  - [ ] Loading state while fetching
-  - [ ] Save to library after first play
+- [x] Implement `YouTubePlayer.js`
+  - [x] Lazy-load YouTube IFrame API via script tag
+  - [x] Duck-typed AudioManager interface (play, pause, stop, getCurrentTime, getDuration, getFrequencyData, playing)
+  - [x] Interpolated `getCurrentTime()` for sub-frame precision despite YouTube's ~200ms poll interval
+  - [x] Hidden `<div>` player (`position: absolute; left: -9999px`)
+  - [x] `extractVideoId(url)` parses youtube.com/watch, youtu.be, /embed/ formats
+- [x] Implement `generateYouTubeBeats(bpm, duration)` in BeatmapGenerator
+  - [x] Evenly-spaced beats at BPM intervals (no audio analysis)
+- [x] Integrate with SongSelectScene
+  - [x] YouTube URL input field with "Paste YouTube URL..." placeholder
+  - [x] BPM input dialog (default 120)
+  - [x] Save YouTube songs to IndexedDB (`type: 'youtube'`, `youtubeVideoId`, no audioBlob)
+  - [x] YouTube songs show 🎬 badge on sticky notes
+- [x] GameplayScene works unchanged via duck typing
+  - [x] Pause/resume, song end detection, retry all work automatically
+
+---
+
+## Phase 9: Beat Detection v2
+
+**Goal**: Higher-quality BPM estimation and per-difficulty beat sensitivity.
+
+- [x] Comb filter BPM estimation
+  - [x] 0.5 BPM resolution, 280 candidates (60–200 BPM), 8 phase offsets per candidate
+  - [x] Parabolic interpolation for sub-step precision
+  - [x] Octave disambiguation (prefer 75–160 BPM range)
+- [x] Dual-band spectral flux
+  - [x] Split into bass (<200Hz), mid (200–2kHz), high (>2kHz) bands
+  - [x] BPM estimation uses bass-heavy weights (3.0, 0.3, 0.1)
+  - [x] Onset detection uses balanced weights (1.5, 1.5, 0.3) so vocals count
+- [x] Onset Strength Function preprocessing
+  - [x] Log1p compression, 5-tap Hamming smooth, zero-mean, half-wave rectification
+- [x] Phase-aligned grid generation (64 phase offsets, OSF-scored)
+- [x] Per-difficulty sensitivity parameters
+  - [x] `thresholdMultiplier`: controls how prominent a peak must be
+  - [x] `minPeakInterval`: minimum time between detected onsets
+  - [x] `useGrid`: Easy/Normal use phase-aligned grid; Hard uses raw onsets
+- [x] FFT size increased from 1024 to 2048 for better frequency resolution
+
+---
+
+## Phase 10: Spatial & Scoring
+
+**Goal**: Better beat positioning and per-difficulty score tracking.
+
+- [x] Wandering path positioning
+  - [x] Distance proportional to beat timing gap (`timeDelta * PX_PER_SECOND`)
+  - [x] Persistent heading with random drift (±WANDER_RATE radians per step)
+  - [x] Edge steering curves path toward center when near screen boundaries
+  - [x] Break detection: gaps >2s jump to a random new area
+  - [x] Wall bounce: overshoot reflects off boundaries to preserve intended distance
+  - [x] All margins percentage-based (12% X, 19% top, 11% bottom)
+- [x] Per-difficulty score tracking
+  - [x] Scores stored per song per difficulty key (EASY/NORMAL/HARD)
+  - [x] Sticky notes show all three difficulty scores (grade + score, or "- -" if unplayed)
+  - [x] `difficultyKey` threaded through entire play → results → retry chain
+  - [x] Backwards-compatible: old flat-format scores ignored gracefully
 
 ---
 

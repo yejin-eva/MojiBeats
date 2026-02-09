@@ -6,7 +6,7 @@
 |-----------------|-------------------------------|
 | Game Engine     | Phaser 3                       |
 | Audio Analysis  | Web Audio API                  |
-| Beat Detection  | Custom (spectral flux / onset) |
+| Beat Detection  | Custom (dual-band spectral flux, comb filter BPM) |
 | UI Framework    | Phaser game objects            |
 | Storage         | IndexedDB (audio), localStorage (scores) |
 | Build Tool      | Vite                           |
@@ -41,7 +41,8 @@ MojiBeats/
 │   │
 │   ├── audio/
 │   │   ├── AudioManager.js     # Audio loading, playback, Web Audio API
-│   │   ├── BeatDetector.js     # Onset/beat detection from audio buffer
+│   │   ├── BeatDetector.js     # Dual-band onset detection + comb filter BPM
+│   │   ├── YouTubePlayer.js    # YouTube IFrame API wrapper (duck-typed AudioManager)
 │   │   └── SFX.js              # Procedural sound effects (oscillator-based)
 │   │
 │   ├── gameplay/
@@ -83,7 +84,8 @@ MojiBeats/
 │       ├── ScoreSystem.test.js
 │       ├── SongLibrary.test.js
 │       ├── TimingJudge.test.js
-│       └── UrgencyColor.test.js
+│       ├── UrgencyColor.test.js
+│       └── YouTubePlayer.test.js
 │
 ├── CLAUDE.md                   # AI assistant instructions
 ├── DESIGN.md                   # Game design document
@@ -97,6 +99,7 @@ MojiBeats/
 
 ### 1. Audio Pipeline
 
+**MP3 path:**
 ```
 [MP3 File Upload / Drag-and-Drop]
         │
@@ -109,25 +112,48 @@ MojiBeats/
   - Exposes real-time frequency data for reactive background
         │
         ▼
-  BeatDetector.js
-  - Takes AudioBuffer channel data + sample rate
-  - Performs offline analysis:
-    1. Compute energy in windowed frames
-    2. Compute spectral flux (energy differences)
-    3. Apply adaptive thresholding to find onset peaks
-    4. Estimate BPM from onset intervals
-  - Outputs: array of beat timestamps (seconds) + estimated BPM
+  BeatDetector.analyzeBeats(channelData, sampleRate, sensitivity)
+  - Computes spectral flux in 3 bands: bass (<200Hz), mid (200–2kHz), high (>2kHz)
+  - BPM estimation: comb filter on bass-heavy flux (3.0/0.3/0.1 weights)
+    - 280 candidates (60–200 BPM at 0.5 steps), 8 phases each
+    - Parabolic interpolation + octave disambiguation (prefer 75–160)
+  - Onset detection: adaptive threshold + peak picking on balanced flux (1.5/1.5/0.3)
+  - Grid mode (Easy/Normal): phase-aligned grid scored by onset strength function
+  - Raw mode (Hard): uses onset peaks directly (skips grid)
+  - Per-difficulty: thresholdMultiplier, minPeakInterval, useGrid
+  - Outputs: { beats: [...], bpm: number }
         │
         ▼
-  BeatmapGenerator.js
-  - Takes beat timestamps + BPM + minSpacing (difficulty)
+  BeatmapGenerator.generateBeatmap(beats, bpm, minSpacing)
   - Filters beats by minimum spacing (Easy=0.8s, Normal=0.4s, Hard=0.2s)
-  - For each beat:
-    - Assigns random emoji from pool
-    - Assigns position with spatial proximity (close beats → nearby positions)
-    - Assigns target color (rotating through palette)
-    - Calculates spawnTime = beatTime - GROW_DURATION
+  - Wandering path positioning:
+    - Distance proportional to time gap (timeDelta × PX_PER_SECOND, capped at MAX_STEP)
+    - Persistent heading with random drift (±WANDER_RATE radians)
+    - Edge steering curves toward center near boundaries
+    - Break detection: >2s gap → random jump
+    - Wall bounce: overshoot reflects to preserve distance
+  - Assigns emoji, color, spawnTime per beat
   - Outputs: array of spawn events
+```
+
+**YouTube path:**
+```
+[YouTube URL paste]
+        │
+        ▼
+  YouTubePlayer.js (duck-typed AudioManager)
+  - Loads YouTube IFrame API lazily
+  - Creates hidden <div> player
+  - play/pause/stop/getCurrentTime/getDuration/getFrequencyData/playing
+  - Interpolated getCurrentTime() for sub-frame precision
+        │
+        ▼
+  BeatmapGenerator.generateYouTubeBeats(bpm, duration)
+  - Evenly-spaced beats at BPM intervals (no audio analysis)
+        │
+        ▼
+  BeatmapGenerator.generateBeatmap(beats, bpm, minSpacing)
+  - Same positioning pipeline as MP3
 ```
 
 ### 2. Game Loop (GameplayScene)
@@ -209,7 +235,10 @@ Database: MojiBeats
     Key: auto-increment ID
     Value: {
       id, title, bpm, emoji,
-      audioBlob (Blob),
+      audioBlob (Blob | null),    // null for YouTube songs
+      type ('mp3' | 'youtube'),   // default 'mp3'
+      youtubeVideoId (string),    // YouTube video ID (YouTube only)
+      duration,                   // song duration in seconds
       beatCount, dateAdded, playCount
     }
 ```
@@ -219,7 +248,9 @@ Database: MojiBeats
 Key: mojibeats_scores
 Value: {
   [songId]: {
-    bestScore, maxCombo, accuracy, grade
+    EASY:   { bestScore, bestCombo, bestAccuracy, grade, plays },
+    NORMAL: { bestScore, bestCombo, bestAccuracy, grade, plays },
+    HARD:   { bestScore, bestCombo, bestAccuracy, grade, plays }
   }
 }
 ```
@@ -235,13 +266,13 @@ Used by: titles, buttons, combo text, countdown, particles, confetti, health ble
 
 ### 8. Retry Flow
 
-Results pass `minSpacing` through the chain so Retry replays at the same difficulty:
+Results pass difficulty info through the chain so Retry replays at the same difficulty:
 ```
-GameplayScene.getResults() → { ..., minSpacing }
+GameplayScene.getResults() → { ..., minSpacing, sensitivity, difficultyKey }
     → VictoryScene / GameOverScene
-        → Retry button passes { retrySongId, retryMinSpacing }
+        → Retry button passes { retrySongId, retryMinSpacing, retrySensitivity, retryDifficultyKey }
             → SongSelectScene.init() detects retry data
-                → auto-calls playSavedSong(id, { minSpacing })
+                → auto-calls playSavedSong(id, difficulty, difficultyKey)
 ```
 
 ---

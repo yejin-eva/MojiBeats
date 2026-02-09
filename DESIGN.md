@@ -88,13 +88,13 @@ The outline also becomes more opaque (0.5 → 1.0 alpha) as the beat approaches,
 
 Three difficulty levels selectable per song from the sticky note UI:
 
-| Difficulty | Min Beat Spacing | Color |
-|-----------|-----------------|-------|
-| Easy | 0.8s | Green |
-| Normal | 0.4s | Yellow |
-| Hard | 0.2s | Red |
+| Difficulty | Min Spacing | Threshold | Min Peak Interval | Grid | Color |
+|-----------|------------|-----------|-------------------|------|-------|
+| Easy | 0.8s | 2.2x | 0.3s | Yes | Green |
+| Normal | 0.4s | 1.8x | 0.15s | Yes | Yellow |
+| Hard | 0.2s | 1.0x | 0.1s | No | Red |
 
-Higher difficulty = more beats pass the filter = denser beatmap.
+Higher difficulty = lower threshold (detects more onsets) + tighter spacing + no grid (Hard uses raw onsets for maximum density).
 
 ---
 
@@ -166,7 +166,7 @@ Higher difficulty = more beats pass the filter = denser beatmap.
 - **Sticky note song library**: Previously uploaded songs appear as overlapping **sticky notes** fanned at the bottom of the screen.
   - Each note has a random pastel color (yellow, pink, blue, green, purple), the song's emoji, and truncated title.
   - **Collapsed**: notes overlap in a fan layout at the bottom.
-  - **Peeked** (on hover): note slides up, revealing BPM and best score.
+  - **Peeked** (on hover): note slides up, revealing BPM and per-difficulty scores (grade + score for each played difficulty, "- -" for unplayed).
   - **Selected** (on click): note lifts to center, scales up, shows difficulty buttons (Easy/Normal/Hard) and a delete button.
   - Clicking empty space deselects all notes.
   - Up to 6 most recent songs shown.
@@ -209,20 +209,37 @@ Higher difficulty = more beats pass the filter = denser beatmap.
 ### Audio Sources
 
 1. **MP3 Upload**: User uploads an MP3 file (button or drag-and-drop). File is stored in IndexedDB for replay.
+2. **YouTube URL**: User pastes a YouTube link. Video plays via IFrame API (hidden player). User provides BPM (default 120). Beats are evenly spaced at BPM intervals — no audio analysis (YouTube doesn't expose raw audio data).
 
-### Procedural Beatmap Generation
+### Procedural Beatmap Generation (MP3)
 
-- Uses **Web Audio API** for audio analysis.
+- Uses **Web Audio API** for offline audio analysis.
 - Beat/onset detection pipeline:
   1. Decode audio to raw PCM data.
-  2. Compute energy in windowed frames.
-  3. Compute spectral flux (energy differences between frames).
-  4. Apply adaptive thresholding to find onset peaks.
-  5. Estimate BPM from onset intervals.
+  2. Compute spectral flux in three frequency bands: bass (<200Hz), mid (200–2kHz), high (>2kHz).
+  3. For BPM estimation: use bass-heavy flux (weights 3.0/0.3/0.1) to focus on rhythm, not vocals.
+  4. Comb filter BPM: test 280 candidates (60–200 BPM at 0.5 steps), 8 phase offsets each, parabolic interpolation. Octave disambiguation prefers 75–160 range.
+  5. For onset detection: use balanced flux (weights 1.5/1.5/0.3) so vocals and melodic hits count.
+  6. Apply adaptive thresholding + peak picking to find onsets.
+  7. Phase-aligned grid: 64 phase candidates, scored by onset strength function, filtered to only keep grid beats near actual onsets. Hard mode skips the grid and uses raw onsets.
 - Each detected beat becomes an emoji spawn point.
 - Beats are filtered by minimum spacing (configurable per difficulty level).
-- Spawn positions use spatial proximity — beats close in time spawn near each other.
-- Position avoids edges and HUD elements.
+- Sensitivity parameters (threshold multiplier, min peak interval, grid usage) scale per difficulty.
+
+### Beatmap Generation (YouTube)
+
+- Beats are generated at even BPM intervals: `for t = interval; t < duration - 1; t += interval`.
+- No audio analysis — relies on user-provided BPM.
+- Feeds into the same `generateBeatmap()` pipeline for positioning and filtering.
+
+### Beat Positioning
+
+- **Wandering path**: beats spawn along a persistent heading that drifts randomly each step.
+- Distance between consecutive beats is proportional to their time gap (`timeDelta * PX_PER_SECOND`), capped at `MAX_STEP`.
+- **Edge steering**: when near screen boundaries, heading curves toward center.
+- **Break detection**: gaps >2 seconds jump to a random new area.
+- **Wall bounce**: overshoot past boundaries reflects back inward, preserving the intended timing-proportional distance.
+- All margins are percentage-based (12% horizontal, 19% top, 11% bottom).
 
 ---
 
@@ -237,7 +254,7 @@ Higher difficulty = more beats pass the filter = denser beatmap.
 ## Persistence
 
 - **Song library**: Uploaded MP3s stored in browser IndexedDB (blob + metadata: title, BPM, emoji, beat count, play count).
-- **High scores**: Per-song best score, max combo, accuracy, and grade stored in localStorage.
+- **High scores**: Per-song, per-difficulty best score, max combo, accuracy, and grade stored in localStorage.
 
 ---
 
