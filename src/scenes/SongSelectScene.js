@@ -45,7 +45,7 @@ export default class SongSelectScene extends Phaser.Scene {
       fontSize: '22px',
       fontFamily: THEME_FONT,
       color: '#6b7280'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(1000);
 
     this.htmlElements = [];
 
@@ -405,8 +405,6 @@ export default class SongSelectScene extends Phaser.Scene {
       }
     }
 
-    this.uploadBtn.setVisible(false);
-    this.dropHint.setVisible(false);
     if (this.ytInputWrapper) this.ytInputWrapper.style.display = 'none';
   }
 
@@ -414,9 +412,6 @@ export default class SongSelectScene extends Phaser.Scene {
     try {
       await deleteSong(songId);
       this.selectedSongId = null;
-      this.uploadBtn.setVisible(true);
-      this.dropHint.setVisible(true);
-      if (this.ytInputWrapper) this.ytInputWrapper.style.display = 'flex';
       await this.loadSavedSongs();
     } catch (err) {
       console.error('[MojiBeats] Failed to delete song:', err);
@@ -447,16 +442,13 @@ export default class SongSelectScene extends Phaser.Scene {
     for (const note of this.stickyNotes) {
       note.deselect();
     }
-
-    this.uploadBtn.setVisible(true);
-    this.dropHint.setVisible(true);
     if (this.ytInputWrapper) this.ytInputWrapper.style.display = 'flex';
   }
 
   showLoadingSpinner() {
     this.spinnerText = this.add.text(GAME_WIDTH / 2, 480, '🎵', {
       fontSize: '48px',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(1000);
 
     this.spinnerTween = this.tweens.add({
       targets: this.spinnerText,
