@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectBeats, estimateBpm } from '../../src/audio/BeatDetector.js';
+import { detectBeats, estimateBpm, analyzeBeats } from '../../src/audio/BeatDetector.js';
 
 function makeSilence(sampleRate, durationSec) {
   return new Float32Array(sampleRate * durationSec);
@@ -101,5 +101,46 @@ describe('estimateBpm', () => {
 
   it('returns 0 for a single beat', () => {
     expect(estimateBpm([1.0])).toBe(0);
+  });
+});
+
+describe('analyzeBeats', () => {
+  it('returns beats and bpm for a click track', () => {
+    const { buffer } = makeClickTrack(44100, 8, 0.5);
+    const result = analyzeBeats(buffer, 44100);
+    expect(result).toHaveProperty('beats');
+    expect(result).toHaveProperty('bpm');
+    expect(Array.isArray(result.beats)).toBe(true);
+    expect(result.beats.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty beats and 0 bpm for silence', () => {
+    const buffer = makeSilence(44100, 2);
+    const result = analyzeBeats(buffer, 44100);
+    expect(result.beats.length).toBe(0);
+    expect(result.bpm).toBe(0);
+  });
+
+  it('detects ~120 BPM from a 120 BPM click track', () => {
+    const { buffer } = makeClickTrack(44100, 10, 0.5);
+    const result = analyzeBeats(buffer, 44100);
+    expect(result.bpm).toBeGreaterThan(110);
+    expect(result.bpm).toBeLessThan(130);
+  });
+
+  it('detects ~90 BPM from a 90 BPM click track', () => {
+    const interval = 60 / 90;
+    const { buffer } = makeClickTrack(44100, 10, interval);
+    const result = analyzeBeats(buffer, 44100);
+    expect(result.bpm).toBeGreaterThan(80);
+    expect(result.bpm).toBeLessThan(100);
+  });
+
+  it('returns sorted beats', () => {
+    const { buffer } = makeClickTrack(44100, 8, 0.5);
+    const result = analyzeBeats(buffer, 44100);
+    for (let i = 1; i < result.beats.length; i++) {
+      expect(result.beats[i]).toBeGreaterThan(result.beats[i - 1]);
+    }
   });
 });

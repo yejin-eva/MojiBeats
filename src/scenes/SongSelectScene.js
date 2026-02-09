@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, STICKY_NOTE, EMOJI_POOL, YOUTUBE } from '../config.js';
 import AudioManager from '../audio/AudioManager.js';
 import YouTubePlayer, { extractVideoId } from '../audio/YouTubePlayer.js';
-import { detectBeats, estimateBpm } from '../audio/BeatDetector.js';
+import { analyzeBeats } from '../audio/BeatDetector.js';
 import { generateYouTubeBeats } from '../gameplay/BeatmapGenerator.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
@@ -506,8 +506,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
       const channelData = audioManager.getChannelData();
       const sampleRate = audioManager.getSampleRate();
-      const beats = detectBeats(channelData, sampleRate);
-      const bpm = estimateBpm(beats);
+      const { beats, bpm } = analyzeBeats(channelData, sampleRate);
 
       const title = sanitizeTitle(file.name);
       const emoji = EMOJI_POOL[Math.floor(Math.random() * EMOJI_POOL.length)];
@@ -594,8 +593,9 @@ export default class SongSelectScene extends Phaser.Scene {
 
         const channelData = audioManager.getChannelData();
         const sampleRate = audioManager.getSampleRate();
-        beats = detectBeats(channelData, sampleRate);
-        bpm = estimateBpm(beats);
+        const analysis = analyzeBeats(channelData, sampleRate);
+        beats = analysis.beats;
+        bpm = analysis.bpm;
       }
 
       await incrementPlayCount(songId);
