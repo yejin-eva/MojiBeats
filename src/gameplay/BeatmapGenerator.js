@@ -79,11 +79,31 @@ export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marg
   let nx = prev.x + Math.cos(newHeading) * dist;
   let ny = prev.y + Math.sin(newHeading) * dist;
 
-  // Bounce off walls to preserve timing-proportional distance
-  if (nx < minX) { newHeading = Math.PI - newHeading; nx = minX + (minX - nx); }
-  else if (nx > maxX) { newHeading = Math.PI - newHeading; nx = maxX - (nx - maxX); }
-  if (ny < minY) { newHeading = -newHeading; ny = minY + (minY - ny); }
-  else if (ny > maxY) { newHeading = -newHeading; ny = maxY - (ny - maxY); }
+  // Wall slide: when hitting a boundary, redirect remaining distance along the wall
+  if (nx < minX || nx > maxX || ny < minY || ny > maxY) {
+    const cx = Math.max(minX, Math.min(maxX, nx));
+    const cy = Math.max(minY, Math.min(maxY, ny));
+    const traveled = Math.hypot(cx - prev.x, cy - prev.y);
+    const remaining = Math.max(0, dist - traveled);
+
+    if (remaining > 1) {
+      const perpA = newHeading + Math.PI / 2;
+      const perpB = newHeading - Math.PI / 2;
+      const ax = cx + Math.cos(perpA) * remaining;
+      const ay = cy + Math.sin(perpA) * remaining;
+      const bx = cx + Math.cos(perpB) * remaining;
+      const by = cy + Math.sin(perpB) * remaining;
+      const aIn = ax >= minX && ax <= maxX && ay >= minY && ay <= maxY;
+      const bIn = bx >= minX && bx <= maxX && by >= minY && by <= maxY;
+
+      if (aIn && !bIn) { nx = ax; ny = ay; newHeading = perpA; }
+      else if (bIn && !aIn) { nx = bx; ny = by; newHeading = perpB; }
+      else if (aIn && bIn) {
+        if (Math.random() < 0.5) { nx = ax; ny = ay; newHeading = perpA; }
+        else { nx = bx; ny = by; newHeading = perpB; }
+      } else { nx = cx; ny = cy; }
+    } else { nx = cx; ny = cy; }
+  }
 
   nx = Math.max(minX, Math.min(maxX, nx));
   ny = Math.max(minY, Math.min(maxY, ny));

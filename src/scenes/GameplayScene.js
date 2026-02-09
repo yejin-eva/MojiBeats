@@ -145,8 +145,8 @@ export default class GameplayScene extends Phaser.Scene {
 
   triggerBeatPulses(currentTime) {
     while (
-      this.nextBeatIndex < this.beats.length &&
-      this.beats[this.nextBeatIndex] <= currentTime
+      this.nextBeatIndex < this.beatmap.length &&
+      this.beatmap[this.nextBeatIndex].beatTime <= currentTime
     ) {
       this.background.onBeat();
       this.nextBeatIndex++;
