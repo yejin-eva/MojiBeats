@@ -48,12 +48,10 @@ export default class BackgroundReactive {
     this.doodles.forEach((doodle, i) => {
       const base = this.doodleBaseScales[i];
       doodle.setScale(base * 1.3);
-      doodle.setAlpha(0.45);
       this.scene.tweens.add({
         targets: doodle,
         scaleX: base,
         scaleY: base,
-        alpha: 0.2,
         duration: 350,
         ease: 'Power2',
       });
