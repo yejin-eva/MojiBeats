@@ -15,19 +15,28 @@ export function emitBurst(scene, x, y, color, emoji) {
     const screenY = y + localY * displayScale;
 
     const angle = Math.atan2(localY, localX) + (Math.random() - 0.5) * 0.6;
-    const speed = 42 + Math.random() * 98;
+    const speed = 25 + Math.random() * 59;
 
     const frag = scene.add.image(screenX, screenY, key);
     frag.setScale(displayScale);
 
+    const duration = 400 + Math.random() * 300;
+
     scene.tweens.add({
       targets: frag,
       x: screenX + Math.cos(angle) * speed,
-      y: screenY + Math.sin(angle) * speed + 35,
+      y: screenY + Math.sin(angle) * speed + 21,
       angle: (Math.random() - 0.5) * 180,
-      alpha: 0,
-      duration: 400 + Math.random() * 300,
+      duration,
       ease: 'Power2',
+    });
+
+    scene.tweens.add({
+      targets: frag,
+      alpha: 0,
+      delay: duration * 0.5,
+      duration: duration * 0.5,
+      ease: 'Power3',
       onComplete: () => frag.destroy()
     });
   }
