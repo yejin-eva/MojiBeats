@@ -29,7 +29,10 @@ export default class StickyNote {
     this.tape = this.scene.add.rectangle(0, -HEIGHT / 2 + 2, tapeWidth, tapeHeight, 0xffffff, 0.6)
       .setStrokeStyle(1, 0xcccccc);
 
-    this.emojiText = this.scene.add.text(0, -HEIGHT * 0.31, this.songData.emoji || '🎵', {
+    const isYouTube = this.songData.type === 'youtube';
+    const displayEmoji = isYouTube ? '🎬' : (this.songData.emoji || '🎵');
+
+    this.emojiText = this.scene.add.text(0, -HEIGHT * 0.31, displayEmoji, {
       fontSize: `${Math.round(HEIGHT * 0.14)}px`,
       padding: { top: 2, bottom: 2 },
     }).setOrigin(0.5);

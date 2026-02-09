@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateBeatmap, filterBeats } from '../../src/gameplay/BeatmapGenerator.js';
+import { generateBeatmap, filterBeats, generateYouTubeBeats } from '../../src/gameplay/BeatmapGenerator.js';
 import { GROW_DURATION, EMOJI_POOL, TARGET_COLORS, GAME_WIDTH, GAME_HEIGHT, DIFFICULTY } from '../../src/config.js';
 
 describe('generateBeatmap', () => {
@@ -132,5 +132,56 @@ describe('filterBeats', () => {
     const hard = filterBeats(dense, 120, DIFFICULTY.HARD.minSpacing);
     const normal = filterBeats(dense, 120, DIFFICULTY.NORMAL.minSpacing);
     expect(hard.length).toBeGreaterThan(normal.length);
+  });
+});
+
+describe('generateYouTubeBeats', () => {
+  it('generates evenly spaced beats at BPM interval', () => {
+    const beats = generateYouTubeBeats(120, 10);
+    const interval = 60 / 120; // 0.5s
+    for (let i = 1; i < beats.length; i++) {
+      expect(beats[i] - beats[i - 1]).toBeCloseTo(interval);
+    }
+  });
+
+  it('starts one beat in (not at time 0)', () => {
+    const beats = generateYouTubeBeats(120, 10);
+    expect(beats[0]).toBeCloseTo(0.5);
+  });
+
+  it('ends before duration - 1', () => {
+    const beats = generateYouTubeBeats(120, 10);
+    const last = beats[beats.length - 1];
+    expect(last).toBeLessThan(10 - 1);
+  });
+
+  it('returns empty for very short duration', () => {
+    const beats = generateYouTubeBeats(120, 1);
+    expect(beats.length).toBe(0);
+  });
+
+  it('produces correct count for known BPM and duration', () => {
+    // 60 BPM = 1 beat/sec, duration 10s
+    // Beats at: 1, 2, 3, 4, 5, 6, 7, 8 (9 would be >= 10-1)
+    const beats = generateYouTubeBeats(60, 10);
+    expect(beats.length).toBe(8);
+  });
+
+  it('produces more beats at higher BPM', () => {
+    const slow = generateYouTubeBeats(60, 30);
+    const fast = generateYouTubeBeats(180, 30);
+    expect(fast.length).toBeGreaterThan(slow.length);
+  });
+
+  it('feeds into generateBeatmap correctly', () => {
+    const beats = generateYouTubeBeats(120, 10);
+    const map = generateBeatmap(beats, 120);
+    expect(map.length).toBeGreaterThan(0);
+    for (const event of map) {
+      expect(event).toHaveProperty('beatTime');
+      expect(event).toHaveProperty('spawnTime');
+      expect(event).toHaveProperty('x');
+      expect(event).toHaveProperty('y');
+    }
   });
 });

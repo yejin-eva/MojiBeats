@@ -28,13 +28,16 @@ export function sanitizeTitle(filename) {
   return filename.replace(/\.[^.]+$/, '');
 }
 
-export function createSongRecord({ title, bpm, audioBlob, emoji, beatCount }) {
+export function createSongRecord({ title, bpm, audioBlob, emoji, beatCount, type, youtubeVideoId, duration }) {
   return {
     title: title || 'Untitled',
     bpm: bpm || 0,
     audioBlob: audioBlob || null,
     emoji: emoji || '🎵',
     beatCount: beatCount || 0,
+    type: type || 'mp3',
+    youtubeVideoId: youtubeVideoId || null,
+    duration: duration || 0,
     dateAdded: Date.now(),
     playCount: 0,
   };
@@ -79,6 +82,21 @@ export async function getSongBlob(id) {
 
     request.onsuccess = () => {
       resolve(request.result ? request.result.audioBlob : null);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function getSongData(id) {
+  const db = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORAGE.SONGS_STORE, 'readonly');
+    const store = tx.objectStore(STORAGE.SONGS_STORE);
+    const request = store.get(id);
+
+    request.onsuccess = () => {
+      resolve(request.result || null);
     };
     request.onerror = () => reject(request.error);
   });

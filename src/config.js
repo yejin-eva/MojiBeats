@@ -127,6 +127,11 @@ export const STORAGE = {
   SCORES_KEY: 'mojibeats_scores',
 };
 
+// YouTube
+export const YOUTUBE = {
+  DEFAULT_BPM: 120,
+};
+
 // Theme
 export const THEME = {
   PRIMARY: '#a78bfa',

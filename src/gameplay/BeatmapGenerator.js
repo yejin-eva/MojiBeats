@@ -69,6 +69,15 @@ export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marg
   };
 }
 
+export function generateYouTubeBeats(bpm, duration) {
+  const interval = 60 / bpm;
+  const beats = [];
+  for (let t = interval; t < duration - 1; t += interval) {
+    beats.push(t);
+  }
+  return beats;
+}
+
 export function generateBeatmap(beats, bpm, minSpacing = DEFAULT_MIN_SPACING) {
   const filtered = bpm ? filterBeats(beats, bpm, minSpacing) : beats;
   if (filtered.length === 0) return [];
