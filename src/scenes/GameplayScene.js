@@ -28,6 +28,7 @@ export default class GameplayScene extends Phaser.Scene {
     this.songId = data.songId || null;
     this.minSpacing = data.minSpacing || 0.4;
     this.sensitivity = data.sensitivity || {};
+    this.difficultyKey = data.difficultyKey || null;
   }
 
   create() {
@@ -296,6 +297,7 @@ export default class GameplayScene extends Phaser.Scene {
       songId: this.songId,
       minSpacing: this.minSpacing,
       sensitivity: this.sensitivity,
+      difficultyKey: this.difficultyKey,
     };
   }
 

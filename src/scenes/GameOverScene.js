@@ -14,6 +14,7 @@ export default class GameOverScene extends Phaser.Scene {
     this.retrySongId = this.results.songId;
     this.retryMinSpacing = this.results.minSpacing || 0.4;
     this.retrySensitivity = this.results.sensitivity || {};
+    this.retryDifficultyKey = this.results.difficultyKey || null;
   }
 
   create() {
@@ -23,11 +24,11 @@ export default class GameOverScene extends Phaser.Scene {
     drawNotebookGrid(this);
     scatterDoodles(this);
 
-    const { score, maxCombo, accuracy, songId } = this.results;
+    const { score, maxCombo, accuracy, songId, difficultyKey } = this.results;
     const grade = calculateGrade(accuracy);
 
     if (songId) {
-      saveScore(songId, { score, maxCombo, accuracy, grade });
+      saveScore(songId, { score, maxCombo, accuracy, grade, difficultyKey });
     }
 
     this.add.text(GAME_WIDTH / 2, 120, '😵 💥 🎮', {
@@ -83,6 +84,7 @@ export default class GameOverScene extends Phaser.Scene {
       retrySongId: this.retrySongId,
       retryMinSpacing: this.retryMinSpacing,
       retrySensitivity: this.retrySensitivity,
+      retryDifficultyKey: this.retryDifficultyKey,
     }));
 
     const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 500, 'Song Select', {

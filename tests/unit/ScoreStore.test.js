@@ -62,12 +62,13 @@ describe('betterGrade', () => {
 });
 
 describe('saveScore', () => {
-  it('creates new entry for unknown song', () => {
+  it('creates new entry for unknown song with difficulty', () => {
     const result = saveScore('song1', {
       score: 5000,
       maxCombo: 20,
       accuracy: 85,
       grade: 'A',
+      difficultyKey: 'NORMAL',
     });
     expect(result.bestScore).toBe(5000);
     expect(result.bestCombo).toBe(20);
@@ -76,9 +77,9 @@ describe('saveScore', () => {
     expect(result.plays).toBe(1);
   });
 
-  it('keeps max of each field on second play', () => {
-    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A' });
-    const result = saveScore('song1', { score: 3000, maxCombo: 30, accuracy: 70, grade: 'B' });
+  it('keeps max of each field on second play same difficulty', () => {
+    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A', difficultyKey: 'EASY' });
+    const result = saveScore('song1', { score: 3000, maxCombo: 30, accuracy: 70, grade: 'B', difficultyKey: 'EASY' });
     expect(result.bestScore).toBe(5000);
     expect(result.bestCombo).toBe(30);
     expect(result.bestAccuracy).toBe(85);
@@ -87,9 +88,17 @@ describe('saveScore', () => {
   });
 
   it('upgrades grade when new play is better', () => {
-    saveScore('song1', { score: 3000, maxCombo: 10, accuracy: 70, grade: 'B' });
-    const result = saveScore('song1', { score: 8000, maxCombo: 50, accuracy: 96, grade: 'S' });
+    saveScore('song1', { score: 3000, maxCombo: 10, accuracy: 70, grade: 'B', difficultyKey: 'HARD' });
+    const result = saveScore('song1', { score: 8000, maxCombo: 50, accuracy: 96, grade: 'S', difficultyKey: 'HARD' });
     expect(result.grade).toBe('S');
+  });
+
+  it('stores different difficulties independently', () => {
+    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A', difficultyKey: 'EASY' });
+    saveScore('song1', { score: 3000, maxCombo: 10, accuracy: 70, grade: 'B', difficultyKey: 'HARD' });
+    const scores = getScoreForSong('song1');
+    expect(scores.EASY.bestScore).toBe(5000);
+    expect(scores.HARD.bestScore).toBe(3000);
   });
 });
 
@@ -98,10 +107,16 @@ describe('getScoreForSong', () => {
     expect(getScoreForSong('nonexistent')).toBeNull();
   });
 
-  it('returns saved score', () => {
-    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A' });
+  it('returns per-difficulty scores', () => {
+    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A', difficultyKey: 'NORMAL' });
     const result = getScoreForSong('song1');
-    expect(result.bestScore).toBe(5000);
+    expect(result.NORMAL.bestScore).toBe(5000);
+    expect(result.NORMAL.grade).toBe('A');
+  });
+
+  it('returns null for old format scores', () => {
+    store['mojibeats_scores'] = JSON.stringify({ song1: { bestScore: 5000, grade: 'A', plays: 1 } });
+    expect(getScoreForSong('song1')).toBeNull();
   });
 });
 
@@ -111,8 +126,8 @@ describe('getScores', () => {
   });
 
   it('returns all scores', () => {
-    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A' });
-    saveScore('song2', { score: 3000, maxCombo: 10, accuracy: 70, grade: 'B' });
+    saveScore('song1', { score: 5000, maxCombo: 20, accuracy: 85, grade: 'A', difficultyKey: 'NORMAL' });
+    saveScore('song2', { score: 3000, maxCombo: 10, accuracy: 70, grade: 'B', difficultyKey: 'EASY' });
     const scores = getScores();
     expect(Object.keys(scores)).toHaveLength(2);
   });

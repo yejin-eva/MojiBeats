@@ -33,7 +33,7 @@ export default class StickyNote {
     const displayEmoji = isYouTube ? '🎬' : (this.songData.emoji || '🎵');
 
     this.emojiText = this.scene.add.text(0, -HEIGHT * 0.31, displayEmoji, {
-      fontSize: `${Math.round(HEIGHT * 0.14)}px`,
+      fontSize: `${Math.round(HEIGHT * 0.10)}px`,
       padding: { top: 2, bottom: 2 },
     }).setOrigin(0.5);
 
@@ -49,8 +49,8 @@ export default class StickyNote {
       wordWrap: { width: WIDTH - 16 },
     }).setOrigin(0.5);
 
-    this.detailText = this.scene.add.text(0, HEIGHT * 0.1, this.getDetailString(), {
-      fontSize: `${Math.round(HEIGHT * 0.085)}px`,
+    this.detailText = this.scene.add.text(0, HEIGHT * 0.17, this.getDetailString(), {
+      fontSize: `${Math.round(HEIGHT * 0.075)}px`,
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
@@ -76,16 +76,27 @@ export default class StickyNote {
   getDetailString() {
     const parts = [];
     if (this.songData.bpm) parts.push(`${Math.round(this.songData.bpm)} BPM`);
-    if (this.songData.bestScore !== undefined && this.songData.bestScore !== null) {
-      parts.push(`Best: ${this.songData.bestScore.toLocaleString()}`);
+
+    const scores = this.songData.scores;
+    const diffs = [
+      { key: 'EASY', label: 'Easy' },
+      { key: 'NORMAL', label: 'Normal' },
+      { key: 'HARD', label: 'Hard' },
+    ];
+    for (const { key, label } of diffs) {
+      const s = scores && scores[key];
+      if (s) {
+        parts.push(`${label}  ${s.grade}  ${s.bestScore.toLocaleString()}`);
+      } else {
+        parts.push(`${label}  -  -`);
+      }
     }
-    if (this.songData.grade) parts.push(this.songData.grade);
     return parts.join('\n') || '';
   }
 
   createDifficultyButtons() {
-    const diffs = [DIFFICULTY.EASY, DIFFICULTY.NORMAL, DIFFICULTY.HARD];
-    return diffs.map((diff) => {
+    const diffs = Object.entries(DIFFICULTY);
+    return diffs.map(([key, diff]) => {
       const btn = this.scene.add.text(0, 0, diff.label, {
         fontSize: '15px',
         fontFamily: THEME_FONT,
@@ -104,7 +115,7 @@ export default class StickyNote {
       btn.on('pointerover', () => btn.setStyle({ backgroundColor: darken(diff.color) }));
       btn.on('pointerout', () => btn.setStyle({ backgroundColor: diff.color }));
       btn.on('pointerdown', () => {
-        this.scene.events.emit('sticky-play', { songId: this.songData.id, difficulty: diff });
+        this.scene.events.emit('sticky-play', { songId: this.songData.id, difficulty: diff, difficultyKey: key });
       });
       return btn;
     });

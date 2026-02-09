@@ -27,12 +27,17 @@ function persistScores(scores) {
   localStorage.setItem(STORAGE.SCORES_KEY, JSON.stringify(scores));
 }
 
-export function saveScore(songId, { score, maxCombo, accuracy, grade }) {
+export function saveScore(songId, { score, maxCombo, accuracy, grade, difficultyKey }) {
   const scores = loadScores();
-  const existing = scores[songId];
+  if (!scores[songId] || scores[songId].bestScore !== undefined) {
+    scores[songId] = {};
+  }
+
+  const key = difficultyKey || '_default';
+  const existing = scores[songId][key];
 
   if (!existing) {
-    scores[songId] = {
+    scores[songId][key] = {
       bestScore: score,
       bestCombo: maxCombo,
       bestAccuracy: accuracy,
@@ -40,7 +45,7 @@ export function saveScore(songId, { score, maxCombo, accuracy, grade }) {
       plays: 1,
     };
   } else {
-    scores[songId] = {
+    scores[songId][key] = {
       bestScore: Math.max(existing.bestScore, score),
       bestCombo: Math.max(existing.bestCombo, maxCombo),
       bestAccuracy: Math.max(existing.bestAccuracy, accuracy),
@@ -50,12 +55,15 @@ export function saveScore(songId, { score, maxCombo, accuracy, grade }) {
   }
 
   persistScores(scores);
-  return scores[songId];
+  return scores[songId][key];
 }
 
 export function getScoreForSong(songId) {
   const scores = loadScores();
-  return scores[songId] || null;
+  const songScores = scores[songId];
+  if (!songScores) return null;
+  if (songScores.bestScore !== undefined) return null;
+  return songScores;
 }
 
 export function getScores() {

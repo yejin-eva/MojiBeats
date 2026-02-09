@@ -61,7 +61,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.events.on('shutdown', () => this.removeHtmlElements());
 
     if (this.retryData.retrySongId) {
-      this.playSavedSong(this.retryData.retrySongId, { minSpacing: this.retryData.retryMinSpacing, sensitivity: this.retryData.retrySensitivity });
+      this.playSavedSong(this.retryData.retrySongId, { minSpacing: this.retryData.retryMinSpacing, sensitivity: this.retryData.retrySensitivity }, this.retryData.retryDifficultyKey);
     }
   }
 
@@ -348,7 +348,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
   listenForStickyEvents() {
     this.events.on('sticky-select', (songId) => this.onStickySelect(songId));
-    this.events.on('sticky-play', ({ songId, difficulty }) => this.playSavedSong(songId, difficulty));
+    this.events.on('sticky-play', ({ songId, difficulty, difficultyKey }) => this.playSavedSong(songId, difficulty, difficultyKey));
     this.events.on('sticky-delete', (songId) => this.onStickyDelete(songId));
   }
 
@@ -361,11 +361,10 @@ export default class SongSelectScene extends Phaser.Scene {
       }
 
       const songsWithScores = songs.map((song) => {
-        const score = getScoreForSong(song.id);
+        const scores = getScoreForSong(song.id);
         return {
           ...song,
-          bestScore: score ? score.bestScore : null,
-          grade: score ? score.grade : null,
+          scores: scores || {},
         };
       });
 
@@ -543,7 +542,7 @@ export default class SongSelectScene extends Phaser.Scene {
     }
   }
 
-  async playSavedSong(songId, difficulty) {
+  async playSavedSong(songId, difficulty, difficultyKey) {
     const minSpacing = difficulty ? difficulty.minSpacing : 0.4;
     const sensitivity = difficulty ? difficulty.sensitivity : {};
 
@@ -603,7 +602,7 @@ export default class SongSelectScene extends Phaser.Scene {
       this.hideLoadingSpinner();
 
       pageFlipOut(this, () => {
-        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing, sensitivity });
+        this.scene.start(SCENES.GAMEPLAY, { audioManager, beats, bpm, songName, songId, minSpacing, sensitivity, difficultyKey });
       });
     } catch (err) {
       console.error('[MojiBeats] Failed to load saved song:', err);

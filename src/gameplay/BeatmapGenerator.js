@@ -79,6 +79,12 @@ export function computeNextPosition(prev, timeDelta, playWidth, playHeight, marg
   let nx = prev.x + Math.cos(newHeading) * dist;
   let ny = prev.y + Math.sin(newHeading) * dist;
 
+  // Bounce off walls to preserve timing-proportional distance
+  if (nx < minX) { newHeading = Math.PI - newHeading; nx = minX + (minX - nx); }
+  else if (nx > maxX) { newHeading = Math.PI - newHeading; nx = maxX - (nx - maxX); }
+  if (ny < minY) { newHeading = -newHeading; ny = minY + (minY - ny); }
+  else if (ny > maxY) { newHeading = -newHeading; ny = maxY - (ny - maxY); }
+
   nx = Math.max(minX, Math.min(maxX, nx));
   ny = Math.max(minY, Math.min(maxY, ny));
 
