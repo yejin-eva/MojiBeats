@@ -24,6 +24,8 @@ export default class SongSelectScene extends Phaser.Scene {
     pageFlipIn(this);
 
     this.stickyNotes = [];
+    this.allSongs = [];
+    this.pageStart = 0;
     this.selectedSongId = null;
 
     drawNotebookGrid(this);
@@ -376,15 +378,80 @@ export default class SongSelectScene extends Phaser.Scene {
 
   renderStickyNotes(songs) {
     this.clearStickyNotes();
+    this.allSongs = songs;
 
-    const visible = songs.slice(-STICKY_NOTE.MAX_VISIBLE);
+    if (this.pageStart >= songs.length && songs.length > 0) {
+      this.pageStart = Math.max(0, songs.length - STICKY_NOTE.MAX_VISIBLE);
+    }
+
+    const visible = songs.slice(this.pageStart, this.pageStart + STICKY_NOTE.MAX_VISIBLE);
     const colors = STICKY_NOTE.COLORS;
 
     visible.forEach((song, i) => {
-      const color = colors[i % colors.length];
+      const color = colors[(this.pageStart + i) % colors.length];
       const note = new StickyNote(this, song, color, i);
       this.stickyNotes.push(note);
     });
+
+    this.updatePageArrows();
+  }
+
+  updatePageArrows() {
+    if (this.leftArrow) { this.leftArrow.destroy(); this.leftArrow = null; }
+    if (this.rightArrow) { this.rightArrow.destroy(); this.rightArrow = null; }
+    if (this.pageIndicator) { this.pageIndicator.destroy(); this.pageIndicator = null; }
+
+    const total = this.allSongs.length;
+    const max = STICKY_NOTE.MAX_VISIBLE;
+    if (total <= max) return;
+
+    const { COLLAPSED_Y, WIDTH, FAN_OVERLAP } = STICKY_NOTE;
+    const totalWidth = max * (WIDTH - FAN_OVERLAP) + FAN_OVERLAP;
+    const leftEdge = (GAME_WIDTH - totalWidth) / 2;
+    const rightEdge = leftEdge + totalWidth;
+    const arrowY = COLLAPSED_Y;
+
+    if (this.pageStart > 0) {
+      this.leftArrow = this.add.text(leftEdge - 30, arrowY, '<', {
+        fontSize: '36px',
+        fontFamily: THEME_FONT,
+        color: THEME.PRIMARY,
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(200);
+      this.leftArrow.on('pointerdown', () => this.pageLeft());
+      this.leftArrow.on('pointerover', () => this.leftArrow.setScale(1.3));
+      this.leftArrow.on('pointerout', () => this.leftArrow.setScale(1));
+    }
+
+    if (this.pageStart + max < total) {
+      this.rightArrow = this.add.text(rightEdge + 30, arrowY, '>', {
+        fontSize: '36px',
+        fontFamily: THEME_FONT,
+        color: THEME.PRIMARY,
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(200);
+      this.rightArrow.on('pointerdown', () => this.pageRight());
+      this.rightArrow.on('pointerover', () => this.rightArrow.setScale(1.3));
+      this.rightArrow.on('pointerout', () => this.rightArrow.setScale(1));
+    }
+
+    const currentPage = Math.floor(this.pageStart / max) + 1;
+    const totalPages = Math.ceil(total / max);
+    this.pageIndicator = this.add.text(GAME_WIDTH / 2, COLLAPSED_Y - STICKY_NOTE.HEIGHT / 2 - 15, `${currentPage} / ${totalPages}`, {
+      fontSize: '14px',
+      fontFamily: THEME_FONT,
+      color: '#9ca3af',
+    }).setOrigin(0.5).setDepth(-1);
+  }
+
+  pageLeft() {
+    this.deselectAll();
+    this.pageStart = Math.max(0, this.pageStart - STICKY_NOTE.MAX_VISIBLE);
+    this.renderStickyNotes(this.allSongs);
+  }
+
+  pageRight() {
+    this.deselectAll();
+    this.pageStart = Math.min(this.allSongs.length - 1, this.pageStart + STICKY_NOTE.MAX_VISIBLE);
+    this.renderStickyNotes(this.allSongs);
   }
 
   clearStickyNotes() {
@@ -392,10 +459,23 @@ export default class SongSelectScene extends Phaser.Scene {
       note.destroy();
     }
     this.stickyNotes = [];
+    if (this.leftArrow) { this.leftArrow.destroy(); this.leftArrow = null; }
+    if (this.rightArrow) { this.rightArrow.destroy(); this.rightArrow = null; }
+    if (this.pageIndicator) { this.pageIndicator.destroy(); this.pageIndicator = null; }
   }
 
   onStickySelect(songId) {
     this.selectedSongId = songId;
+
+    // If the song isn't on the current page, jump to its page
+    const visible = this.stickyNotes.some(n => n.songData.id === songId);
+    if (!visible && this.allSongs.length > 0) {
+      const songIndex = this.allSongs.findIndex(s => s.id === songId);
+      if (songIndex !== -1) {
+        this.pageStart = Math.floor(songIndex / STICKY_NOTE.MAX_VISIBLE) * STICKY_NOTE.MAX_VISIBLE;
+        this.renderStickyNotes(this.allSongs);
+      }
+    }
 
     for (const note of this.stickyNotes) {
       if (note.songData.id === songId) {
@@ -443,6 +523,7 @@ export default class SongSelectScene extends Phaser.Scene {
       note.deselect();
     }
     if (this.ytInputWrapper) this.ytInputWrapper.style.display = 'flex';
+    this.statusText.setText('');
   }
 
   showLoadingSpinner() {
