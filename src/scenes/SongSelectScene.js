@@ -8,6 +8,7 @@ import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { getAllSongs, getSongBlob, getSongData, saveSong, sanitizeTitle, incrementPlayCount, deleteSong } from '../storage/SongLibrary.js';
 import { getScoreForSong } from '../storage/ScoreStore.js';
+import { ensureExampleSong } from '../storage/ExampleSong.js';
 import StickyNote from '../ui/StickyNote.js';
 
 export default class SongSelectScene extends Phaser.Scene {
@@ -56,7 +57,12 @@ export default class SongSelectScene extends Phaser.Scene {
     this.createYouTubeInput();
     this.listenForStickyEvents();
     this.listenForDragDrop();
-    this.loadSavedSongs();
+    ensureExampleSong()
+      .then(() => this.loadSavedSongs())
+      .catch(err => {
+        console.error('[MojiBeats] Example song install failed:', err);
+        this.loadSavedSongs();
+      });
 
     this.input.on('pointerdown', (pointer) => this.onBackgroundClick(pointer));
 
