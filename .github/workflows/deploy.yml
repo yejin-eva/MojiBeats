@@ -27,6 +27,8 @@ jobs:
 
       - run: npm ci
       - run: npx vite build --base=/MojiBeats/
+        env:
+          VITE_YT_API_URL: https://mojibeats.onrender.com
 
       - uses: actions/upload-pages-artifact@v3
         with:
