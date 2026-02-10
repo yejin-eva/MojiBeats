@@ -8,7 +8,7 @@ import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { getAllSongs, getSongBlob, getSongData, saveSong, sanitizeTitle, incrementPlayCount, deleteSong } from '../storage/SongLibrary.js';
 import { getScoreForSong } from '../storage/ScoreStore.js';
-import { ensureExampleSong } from '../storage/ExampleSong.js';
+import { getExampleSongs, getExampleSongById, markExampleDeleted } from '../storage/ExampleSongs.js';
 import StickyNote from '../ui/StickyNote.js';
 
 export default class SongSelectScene extends Phaser.Scene {
@@ -57,12 +57,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.createYouTubeInput();
     this.listenForStickyEvents();
     this.listenForDragDrop();
-    ensureExampleSong()
-      .then(() => this.loadSavedSongs())
-      .catch(err => {
-        console.error('[MojiBeats] Example song install failed:', err);
-        this.loadSavedSongs();
-      });
+    this.loadSavedSongs();
 
     this.input.on('pointerdown', (pointer) => this.onBackgroundClick(pointer));
 
@@ -362,7 +357,10 @@ export default class SongSelectScene extends Phaser.Scene {
 
   async loadSavedSongs() {
     try {
-      const songs = await getAllSongs();
+      const dbSongs = await getAllSongs();
+      const examples = getExampleSongs();
+      const songs = [...examples, ...dbSongs];
+
       if (songs.length === 0) {
         this.clearStickyNotes();
         return;
@@ -496,7 +494,12 @@ export default class SongSelectScene extends Phaser.Scene {
 
   async onStickyDelete(songId) {
     try {
-      await deleteSong(songId);
+      const song = this.allSongs.find(s => s.id === songId);
+      if (song && song.type === 'example') {
+        markExampleDeleted(song.title);
+      } else {
+        await deleteSong(songId);
+      }
       this.selectedSongId = null;
       await this.loadSavedSongs();
     } catch (err) {
@@ -632,7 +635,7 @@ export default class SongSelectScene extends Phaser.Scene {
     this.showLoadingSpinner();
 
     try {
-      const songRecord = await getSongData(songId);
+      const songRecord = getExampleSongById(songId) || await getSongData(songId);
       if (!songRecord) {
         this.statusText.setText('Song data not found.');
         this.uploadBtn.setVisible(true);
@@ -646,7 +649,22 @@ export default class SongSelectScene extends Phaser.Scene {
 
       let audioManager, beats, bpm;
 
-      if (songRecord.type === 'youtube') {
+      if (songRecord.type === 'example') {
+        const response = await fetch(songRecord.url);
+        const arrayBuffer = await response.arrayBuffer();
+        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        audioManager = new AudioManager();
+        const file = new File([blob], 'song.mp3', { type: 'audio/mpeg' });
+        await audioManager.loadFile(file);
+
+        this.statusText.setText('Analyzing beats...');
+
+        const channelData = audioManager.getChannelData();
+        const sampleRate = audioManager.getSampleRate();
+        const analysis = analyzeBeats(channelData, sampleRate, sensitivity);
+        beats = analysis.beats;
+        bpm = analysis.bpm;
+      } else if (songRecord.type === 'youtube') {
         audioManager = new YouTubePlayer();
         await audioManager.loadVideo(songRecord.youtubeVideoId);
 
