@@ -49,7 +49,9 @@ export const GROW_DURATION = 1.2;
 export const KEYS = {
   HIT_1: 'SPACE',
   HIT_2: 'Z',
-  HIT_3: 'X'
+  HIT_3: 'X',
+  HIT_4: 'D',
+  HIT_5: 'F'
 };
 
 // Countdown before song starts
