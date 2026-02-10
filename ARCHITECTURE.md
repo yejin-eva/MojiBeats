@@ -29,8 +29,9 @@ MojiBeats/
 │   ├── config.js           # All constants: timing, HP, scoring, emojis, theme, etc.
 │   │
 │   ├── assets/
-│   │   └── fonts/
-│   │       └── friendlyscribbles.ttf  # Handwritten theme font
+│   │   ├── fonts/
+│   │   │   └── friendlyscribbles.ttf  # Handwritten theme font
+│   │   └── mp3/                       # Bundled example songs (11 MP3s)
 │   │
 │   ├── scenes/
 │   │   ├── BootScene.js        # Font loading + emoji texture caching
@@ -71,6 +72,7 @@ MojiBeats/
 │   │
 │   └── storage/
 │       ├── SongLibrary.js      # IndexedDB CRUD for audio files + metadata
+│       ├── ExampleSongs.js     # Bundled example song manifest + deletion tracking
 │       └── ScoreStore.js       # localStorage for scores, grades, best combos
 │
 ├── tests/
@@ -221,7 +223,7 @@ Outline alpha also ramps 0.5→1.0 so imminent beats are more vivid. This makes 
 ### 5. Input System
 
 - Phaser pointer tracking for cursor position.
-- Keyboard listener for SPACE, Z, and X keys.
+- Keyboard listener for SPACE, Z, X, D, and F keys.
 - On keypress: find closest active emoji under cursor within hitbox radius.
 - Pass to TimingJudge for window evaluation.
 - Only one emoji hit per keypress (closest to cursor wins).
@@ -241,6 +243,17 @@ Database: MojiBeats
       duration,                   // song duration in seconds
       beatCount, dateAdded, playCount
     }
+```
+
+**ExampleSongs.js (Vite static assets + localStorage)**
+```
+Manifest: hardcoded array of { id, title, bpm, beatCount, emoji, url }
+  - 11 bundled MP3s imported as Vite assets (resolved to URLs at build time)
+  - Songs appear instantly on load (no IndexedDB writes)
+  - MP3s fetched on demand only when user plays
+  - Deletions tracked in localStorage key: mojibeats_deleted_examples
+  - getExampleSongs() merges manifest with deletion blocklist
+  - getExampleSongById(id) for play/retry lookup
 ```
 
 **ScoreStore.js (localStorage)**

@@ -14,6 +14,7 @@
 | 8     | YouTube Support        | Done   | Play songs from YouTube URLs via IFrame API   |
 | 9     | Beat Detection v2      | Done   | Comb filter BPM, dual-band flux, per-difficulty sensitivity |
 | 10    | Spatial & Scoring      | Done   | Wandering path positioning, per-difficulty scores |
+| 11    | Example Song Library   | Done   | 11 bundled songs, on-demand loading, balance tuning |
 
 ---
 
@@ -86,7 +87,7 @@
 
 - [x] Implement `HealthSystem.js`
   - [x] HP tracking (0-100)
-  - [x] Take damage on miss (7 HP)
+  - [x] Take damage on miss (15 HP)
   - [x] Heal on combo milestones (5 HP every 10 combo)
   - [x] Game over trigger (HP <= 0)
 - [x] Implement `ScoreSystem.js`
@@ -220,6 +221,27 @@
   - [x] Sticky notes show all three difficulty scores (grade + score, or "- -" if unplayed)
   - [x] `difficultyKey` threaded through entire play → results → retry chain
   - [x] Backwards-compatible: old flat-format scores ignored gracefully
+
+---
+
+## Phase 11: Example Song Library
+
+**Goal**: Ship with bundled example songs so new users can play instantly.
+
+- [x] Bundle 11 example MP3s as Vite static assets
+  - [x] Songs appear instantly from hardcoded JS manifest (no IndexedDB writes)
+  - [x] MP3s fetched on demand only when user plays (not all upfront)
+  - [x] Deletion tracked in localStorage blocklist (`mojibeats_deleted_examples`)
+- [x] Rewrite `ExampleSong.js` → `ExampleSongs.js`
+  - [x] Manifest with id, title, bpm, beatCount, emoji, Vite asset URL
+  - [x] `getExampleSongs()` filters by deletion blocklist
+  - [x] `getExampleSongById()` for play/retry lookup
+  - [x] `markExampleDeleted()` for localStorage tracking
+- [x] Update `SongSelectScene` to merge example + IndexedDB songs
+  - [x] Example songs handled as `type: 'example'` throughout play/delete/retry flows
+- [x] Gameplay balance tuning
+  - [x] Increase miss damage from 10 to 15 HP (more punishing)
+- [x] Add D and F as additional hit key bindings (alongside SPACE/Z/X)
 
 ---
 
