@@ -163,6 +163,99 @@ export default class SongSelectScene extends Phaser.Scene {
     this.htmlElements.push(wrapper);
   }
 
+  showBpmDialog() {
+    return new Promise((resolve) => {
+      const canvas = this.game.canvas;
+      const rect = canvas.getBoundingClientRect();
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: absolute;
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+      `;
+
+      const dialog = document.createElement('div');
+      dialog.style.cssText = `
+        background: #fffef5;
+        border: 3px solid ${THEME.PRIMARY};
+        border-radius: 12px;
+        padding: 28px;
+        text-align: center;
+        font-family: ${THEME_FONT}, sans-serif;
+      `;
+
+      const label = document.createElement('div');
+      label.textContent = 'Enter BPM (tempo)';
+      label.style.cssText = 'font-size: 22px; color: #374151; margin-bottom: 16px;';
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.value = YOUTUBE.DEFAULT_BPM;
+      input.min = 40;
+      input.max = 300;
+      input.style.cssText = `
+        width: 100px;
+        padding: 8px 12px;
+        border: 2px solid #d4d4d4;
+        border-radius: 6px;
+        font-size: 20px;
+        text-align: center;
+        outline: none;
+        font-family: ${THEME_FONT}, sans-serif;
+      `;
+      input.addEventListener('focus', () => { input.style.borderColor = THEME.PRIMARY; });
+      input.addEventListener('blur', () => { input.style.borderColor = '#d4d4d4'; });
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = 'Confirm';
+      confirmBtn.style.cssText = `
+        display: block;
+        margin: 16px auto 0;
+        padding: 8px 24px;
+        border: none;
+        border-radius: 6px;
+        background: ${THEME.PRIMARY};
+        color: white;
+        font-family: ${THEME_FONT}, sans-serif;
+        font-size: 16px;
+        cursor: pointer;
+      `;
+      confirmBtn.addEventListener('mouseover', () => { confirmBtn.style.background = THEME.PRIMARY_HOVER; });
+      confirmBtn.addEventListener('mouseout', () => { confirmBtn.style.background = THEME.PRIMARY; });
+
+      const finish = () => {
+        const bpm = Math.max(40, Math.min(300, parseInt(input.value, 10) || YOUTUBE.DEFAULT_BPM));
+        overlay.remove();
+        const idx = this.htmlElements.indexOf(overlay);
+        if (idx !== -1) this.htmlElements.splice(idx, 1);
+        resolve(bpm);
+      };
+
+      confirmBtn.addEventListener('click', finish);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') finish();
+      });
+
+      dialog.appendChild(label);
+      dialog.appendChild(input);
+      dialog.appendChild(confirmBtn);
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+      this.htmlElements.push(overlay);
+
+      input.focus();
+      input.select();
+    });
+  }
+
   async handleYouTubeUrl(url) {
     const videoId = extractVideoId(url);
     if (!videoId) {
@@ -170,39 +263,29 @@ export default class SongSelectScene extends Phaser.Scene {
       return;
     }
 
-    this.statusText.setText('Downloading from YouTube...');
+    this.statusText.setText('Loading YouTube video...');
     this.uploadBtn.setVisible(false);
     this.dropHint.setVisible(false);
     if (this.ytInputWrapper) this.ytInputWrapper.style.display = 'none';
     this.showLoadingSpinner();
 
     try {
-      const infoRes = await fetch(`${YOUTUBE.API_URL}/api/youtube?url=${encodeURIComponent(url)}`);
-      if (!infoRes.ok) {
-        const err = await infoRes.json().catch(() => ({}));
-        throw new Error(err.error || 'Server error');
-      }
-      const { token, title, duration } = await infoRes.json();
+      const tempPlayer = new YouTubePlayer();
+      await tempPlayer.loadVideo(videoId);
 
-      this.statusText.setText('Fetching audio...');
-      const audioRes = await fetch(`${YOUTUBE.API_URL}/api/download?token=${token}`);
-      if (!audioRes.ok) throw new Error('Failed to download audio');
-      const arrayBuffer = await audioRes.arrayBuffer();
-      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const title = tempPlayer.getVideoTitle();
+      const duration = tempPlayer.getDuration();
+      tempPlayer.destroy();
 
-      this.statusText.setText('Analyzing beats...');
-      const audioManager = new AudioManager();
-      const file = new File([audioBlob], 'youtube.mp3', { type: 'audio/mpeg' });
-      await audioManager.loadFile(file);
+      this.hideLoadingSpinner();
 
-      const channelData = audioManager.getChannelData();
-      const sampleRate = audioManager.getSampleRate();
-      const { beats, bpm } = analyzeBeats(channelData, sampleRate);
+      const bpm = await this.showBpmDialog();
+
+      const beats = generateYouTubeBeats(bpm, duration);
 
       const songId = await saveSong({
         title,
         bpm,
-        audioBlob,
         emoji: '🎬',
         beatCount: beats.length,
         type: 'youtube',
@@ -211,10 +294,8 @@ export default class SongSelectScene extends Phaser.Scene {
       });
 
       console.log(`[MojiBeats] YouTube song saved: ${title} (id: ${songId})`);
-      console.log(`[MojiBeats] Duration: ${duration.toFixed(1)}s, BPM: ${bpm.toFixed(1)}`);
-      console.log(`[MojiBeats] Detected ${beats.length} real beats`);
+      console.log(`[MojiBeats] Duration: ${duration.toFixed(1)}s, BPM: ${bpm}`);
 
-      this.hideLoadingSpinner();
       this.statusText.setText('Pick a difficulty!');
       this.uploadBtn.setVisible(true);
       this.dropHint.setVisible(true);
@@ -565,8 +646,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
       let audioManager, beats, bpm;
 
-      if (songRecord.type === 'youtube' && !songRecord.audioBlob) {
-        // Legacy: IFrame + BPM-generated beats (old saved songs without audio)
+      if (songRecord.type === 'youtube') {
         audioManager = new YouTubePlayer();
         await audioManager.loadVideo(songRecord.youtubeVideoId);
 
