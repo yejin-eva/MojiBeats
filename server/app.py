@@ -1,9 +1,10 @@
 import os
+import sys
 import uuid
 import time
 import threading
 import subprocess
-import json
+import logging
 from pathlib import Path
 
 from flask import Flask, request, jsonify, send_file
@@ -11,6 +12,9 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+log = logging.getLogger('mojibeats')
 
 DOWNLOADS_DIR = Path(__file__).parent / 'downloads'
 DOWNLOADS_DIR.mkdir(exist_ok=True)
@@ -46,6 +50,7 @@ threading.Thread(target=cleanup_loop, daemon=True).start()
 @app.route('/api/youtube', methods=['GET'])
 def youtube_download():
     url = request.args.get('url', '').strip()
+    log.info('YouTube request: %s', url)
     if not url:
         return jsonify({'error': 'Missing url parameter'}), 400
 
@@ -65,6 +70,7 @@ def youtube_download():
     try:
         info_result = subprocess.run(info_cmd, capture_output=True, text=True, timeout=30)
         if info_result.returncode != 0:
+            log.error('yt-dlp info failed: %s', info_result.stderr)
             return jsonify({'error': 'Failed to fetch video info', 'details': info_result.stderr}), 400
 
         lines = info_result.stdout.strip().split('\n')
@@ -91,6 +97,7 @@ def youtube_download():
     try:
         dl_result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=120)
         if dl_result.returncode != 0:
+            log.error('yt-dlp download failed: %s', dl_result.stderr)
             return jsonify({'error': 'Download failed', 'details': dl_result.stderr}), 400
 
         # yt-dlp may add extension, find the actual file
