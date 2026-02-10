@@ -1,6 +1,8 @@
 import gameboy from '../assets/mp3/Gameboy.mp3';
-import gnarly from '../assets/mp3/Gnarly (Clean Edit).mp3';
 import her from '../assets/mp3/HER.mp3';
+import hypeBoy from '../assets/mp3/Hype Boy.mp3';
+import standingNextToYou from '../assets/mp3/Jungkook \'Standing Next To You\' Lyrics.mp3';
+import spaghetti from '../assets/mp3/LE SSERAFIM \'Spaghetti\' (Color Coded Lyrics).mp3';
 import baby from '../assets/mp3/Justin Bieber - Baby ft. Ludacris (Lyrics).mp3';
 import dancingDays from '../assets/mp3/Lazy Lewis - Dancing Days.mp3';
 import manchild from '../assets/mp3/Manchild.mp3';
@@ -10,8 +12,10 @@ import good4u from '../assets/mp3/good 4 u.mp3';
 
 const MANIFEST = [
   { id: 'ex-gameboy', title: 'Gameboy', bpm: 120, beatCount: 240, emoji: '🎮', url: gameboy },
-  { id: 'ex-gnarly', title: 'Gnarly', bpm: 130, beatCount: 260, emoji: '🔥', url: gnarly },
   { id: 'ex-her', title: 'HER', bpm: 90, beatCount: 180, emoji: '💜', url: her },
+  { id: 'ex-hype-boy', title: 'Hype Boy', bpm: 130, beatCount: 270, emoji: '🐰', url: hypeBoy },
+  { id: 'ex-standing-next-to-you', title: 'Standing Next To You', bpm: 110, beatCount: 230, emoji: '🕺', url: standingNextToYou },
+  { id: 'ex-spaghetti', title: 'Spaghetti', bpm: 125, beatCount: 250, emoji: '🍝', url: spaghetti },
   { id: 'ex-baby', title: 'Baby', bpm: 130, beatCount: 280, emoji: '🎤', url: baby },
   { id: 'ex-dancing-days', title: 'Dancing Days', bpm: 120, beatCount: 240, emoji: '💃', url: dancingDays },
   { id: 'ex-manchild', title: 'Manchild', bpm: 110, beatCount: 220, emoji: '😈', url: manchild },
