@@ -131,6 +131,7 @@ export const STORAGE = {
 
 // YouTube
 export const YOUTUBE = {
+  API_URL: import.meta.env.VITE_YT_API_URL || 'http://localhost:5000',
   DEFAULT_BPM: 120,
 };
 
