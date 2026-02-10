@@ -7,6 +7,7 @@ import baby from '../assets/mp3/Justin Bieber - Baby ft. Ludacris (Lyrics).mp3';
 import dancingDays from '../assets/mp3/Lazy Lewis - Dancing Days.mp3';
 import manchild from '../assets/mp3/Manchild.mp3';
 import midnightSun from '../assets/mp3/Midnight Sun.mp3';
+import itsBucky from '../assets/mp3/Son Lux - It\'s Bucky! (From ThunderboltsVisualizer Video).mp3';
 import speedDrive from '../assets/mp3/Speed Drive.mp3';
 import good4u from '../assets/mp3/good 4 u.mp3';
 
@@ -20,6 +21,7 @@ const MANIFEST = [
   { id: 'ex-dancing-days', title: 'Dancing Days', bpm: 120, beatCount: 240, emoji: '💃', url: dancingDays },
   { id: 'ex-manchild', title: 'Manchild', bpm: 110, beatCount: 220, emoji: '😈', url: manchild },
   { id: 'ex-midnight-sun', title: 'Midnight Sun', bpm: 100, beatCount: 200, emoji: '🌙', url: midnightSun },
+  { id: 'ex-its-bucky', title: "It's Bucky!", bpm: 120, beatCount: 240, emoji: '⚡', url: itsBucky },
   { id: 'ex-speed-drive', title: 'Speed Drive', bpm: 140, beatCount: 300, emoji: '🏎️', url: speedDrive },
   { id: 'ex-good4u', title: 'good 4 u', bpm: 166, beatCount: 350, emoji: '🤘', url: good4u },
 ];
