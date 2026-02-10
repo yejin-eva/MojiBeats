@@ -56,6 +56,7 @@ def youtube_download():
     info_cmd = [
         'yt-dlp',
         '--no-download',
+        '--no-playlist',
         '--print', '%(title)s',
         '--print', '%(duration)s',
         url,
