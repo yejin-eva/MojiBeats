@@ -41,7 +41,7 @@ The outline also becomes more opaque (0.5 → 1.0 alpha) as the beat approaches,
 
 - **Mouse + Keyboard** (osu!-style PC controls):
   - Move cursor to hover over the emoji.
-  - Press a keyboard key (`SPACE`, `Z`, or `X`) to "shoot" it.
+  - Press a keyboard key (`SPACE`, `Z`, `X`, `D`, or `F`) to "shoot" it.
 - The hit must occur **within the hit window** (a time range around the perfect beat moment).
 - Hitting **too early** (emoji still small, outside window) = no effect, nothing happens.
 - Hitting **too late** or **not at all** = miss.
@@ -59,7 +59,7 @@ The outline also becomes more opaque (0.5 → 1.0 alpha) as the beat approaches,
 
 - Player has a **health bar** displayed at **top center** of screen.
 - Starting HP: 100.
-- **On miss**: Health bar takes damage (7 HP per miss).
+- **On miss**: Health bar takes damage (15 HP per miss).
   - The health bar visually "bleeds" with particle effects (lavender/purple particles dripping down).
   - The missed emoji fades out.
 - **On combo**: Sustained combos **heal** the player.
@@ -163,7 +163,7 @@ Higher difficulty = lower threshold (detects more onsets) + tighter spacing + no
 - **Title**: "MojiBeats" in handwritten font (lavender).
 - **Upload button**: "Upload MP3" button (gray). Also supports drag-and-drop.
 - **Loading spinner**: Bouncing 🎵 emoji appears during audio loading and beat analysis.
-- **Sticky note song library**: Previously uploaded songs appear as overlapping **sticky notes** fanned at the bottom of the screen.
+- **Sticky note song library**: Bundled example songs and user-uploaded songs appear as overlapping **sticky notes** fanned at the bottom of the screen.
   - Each note has a random pastel color (yellow, pink, blue, green, purple), the song's emoji, and truncated title.
   - **Collapsed**: notes overlap in a fan layout at the bottom.
   - **Peeked** (on hover): note slides up, revealing BPM and per-difficulty scores (grade + score for each played difficulty, "- -" for unplayed).
@@ -253,7 +253,8 @@ Higher difficulty = lower threshold (detects more onsets) + tighter spacing + no
 
 ## Persistence
 
-- **Song library**: Uploaded MP3s stored in browser IndexedDB (blob + metadata: title, BPM, emoji, beat count, play count).
+- **Example songs**: 11 bundled MP3s served as Vite static assets. Manifest in `ExampleSongs.js` provides instant display (no IndexedDB). MP3s fetched on demand when played. Deletions tracked in localStorage (`mojibeats_deleted_examples`).
+- **Song library**: User-uploaded MP3s stored in browser IndexedDB (blob + metadata: title, BPM, emoji, beat count, play count).
 - **High scores**: Per-song, per-difficulty best score, max combo, accuracy, and grade stored in localStorage.
 
 ---
