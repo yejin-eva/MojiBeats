@@ -1,4 +1,4 @@
-import { STICKY_NOTE, GAME_WIDTH, THEME_FONT, DIFFICULTY } from '../config.js';
+import { STICKY_NOTE, GAME_WIDTH, THEME_FONT, DIFFICULTY, scaleW, scaleH } from '../config.js';
 
 const STATE_COLLAPSED = 0;
 const STATE_PEEKED = 1;
@@ -46,7 +46,7 @@ export default class StickyNote {
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
-      wordWrap: { width: WIDTH - 16 },
+      wordWrap: { width: WIDTH - scaleW(16) },
     }).setOrigin(0.5);
 
     this.detailText = this.scene.add.text(0, HEIGHT * 0.17, this.getDetailString(), {
@@ -54,7 +54,7 @@ export default class StickyNote {
       fontFamily: THEME_FONT,
       color: textColor,
       align: 'center',
-      wordWrap: { width: WIDTH - 20 },
+      wordWrap: { width: WIDTH - scaleW(20) },
       lineSpacing: 2,
       alpha: 0,
     }).setOrigin(0.5);
@@ -64,7 +64,7 @@ export default class StickyNote {
     this.diffBtns = this.createDifficultyButtons();
 
     this.deleteBtn = this.scene.add.text(0, 0, '🗑️', {
-      fontSize: '18px',
+      fontSize: `${scaleH(18)}px`,
       padding: { top: 2, bottom: 2 },
     }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
 
@@ -98,11 +98,11 @@ export default class StickyNote {
     const diffs = Object.entries(DIFFICULTY);
     return diffs.map(([key, diff]) => {
       const btn = this.scene.add.text(0, 0, diff.label, {
-        fontSize: '15px',
+        fontSize: `${scaleH(15)}px`,
         fontFamily: THEME_FONT,
         color: '#ffffff',
         backgroundColor: diff.color,
-        padding: { x: 14, y: 5 },
+        padding: { x: scaleW(14), y: scaleH(5) },
       }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true }).setDepth(101);
 
       const darken = (hex) => {
@@ -215,8 +215,8 @@ export default class StickyNote {
       duration: LIFT_DURATION,
     });
 
-    const btnY = SELECTED_Y + scaledHalfH + 28;
-    const spacing = 100;
+    const btnY = SELECTED_Y + scaledHalfH + scaleH(28);
+    const spacing = scaleW(100);
     const startX = GAME_WIDTH / 2 - spacing;
     this.diffBtns.forEach((btn, i) => {
       this.scene.tweens.add({
@@ -231,8 +231,8 @@ export default class StickyNote {
 
     this.scene.tweens.add({
       targets: this.deleteBtn,
-      x: GAME_WIDTH / 2 + scaledHalfW + 20,
-      y: SELECTED_Y - scaledHalfH + 10,
+      x: GAME_WIDTH / 2 + scaledHalfW + scaleW(20),
+      y: SELECTED_Y - scaledHalfH + scaleH(10),
       alpha: 1,
       duration: 200,
       delay: LIFT_DURATION - 100,

@@ -1,4 +1,4 @@
-import { GROW_DURATION, EMOJI_TEXTURE } from '../config.js';
+import { GROW_DURATION, EMOJI_TEXTURE, scaleW, scaleH } from '../config.js';
 import { getEmojiTextureKey, getOutlineTextureKey } from './EmojiCache.js';
 import { computeUrgencyTint } from './UrgencyColor.js';
 
@@ -76,7 +76,7 @@ export default class EmojiTarget {
   containsPoint(x, y) {
     const dx = x - this.x;
     const dy = y - this.y;
-    const radius = 36 * (this.emoji.scaleX / EMOJI_TEXTURE.DISPLAY_SCALE);
+    const radius = scaleH(36) * (this.emoji.scaleX / EMOJI_TEXTURE.DISPLAY_SCALE);
     return dx * dx + dy * dy <= radius * radius;
   }
 
@@ -89,8 +89,8 @@ export default class EmojiTarget {
 
     if (!this.emoji) { this.destroy(); return; }
 
-    const jerkX = (Math.random() - 0.5) * 8;
-    const jerkY = -3 + Math.random() * 2;
+    const jerkX = (Math.random() - 0.5) * scaleW(8);
+    const jerkY = -scaleH(3) + Math.random() * scaleH(2);
 
     this.scene.tweens.add({
       targets: this.emoji,

@@ -1,15 +1,15 @@
-import { GAME_WIDTH, HEALTH, THEME } from '../config.js';
+import { GAME_WIDTH, HEALTH, THEME, scaleW, scaleH } from '../config.js';
 
 const BAR_WIDTH = Math.round(GAME_WIDTH * 0.6);
-const BAR_HEIGHT = 16;
+const BAR_HEIGHT = scaleH(16);
 const BAR_X = (GAME_WIDTH - BAR_WIDTH) / 2;
-const BAR_Y = 14;
+const BAR_Y = scaleH(14);
 
 export default class HealthBar {
   constructor(scene) {
     this.scene = scene;
 
-    const RADIUS = 6;
+    const RADIUS = scaleH(6);
 
     this.bgGfx = scene.add.graphics();
     this.bgGfx.fillStyle(0xe0daf0);
@@ -26,7 +26,7 @@ export default class HealthBar {
 
     this.hpText = scene.add.text(
       BAR_X + BAR_WIDTH / 2, BAR_Y + BAR_HEIGHT / 2, '100%', {
-        fontSize: '12px',
+        fontSize: `${scaleH(12)}px`,
         fontFamily: 'Arial',
         color: '#4b5563'
       }
@@ -81,8 +81,8 @@ export default class HealthBar {
 
   showHeal() {
     const healText = this.scene.add.text(
-      BAR_X + BAR_WIDTH / 2, BAR_Y - 10, '+HP', {
-        fontSize: '16px',
+      BAR_X + BAR_WIDTH / 2, BAR_Y - scaleH(10), '+HP', {
+        fontSize: `${scaleH(16)}px`,
         fontFamily: 'Arial',
         color: '#34d399'
       }
@@ -90,7 +90,7 @@ export default class HealthBar {
 
     this.scene.tweens.add({
       targets: healText,
-      y: BAR_Y - 30,
+      y: BAR_Y - scaleH(30),
       alpha: 0,
       duration: 600,
       ease: 'Power2',

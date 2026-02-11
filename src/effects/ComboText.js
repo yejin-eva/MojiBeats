@@ -1,11 +1,13 @@
+import { scaleW, scaleH } from '../config.js';
+
 export function showCombo(scene, x, y, combo, color) {
   if (combo < 2) return;
 
-  const offsetX = (Math.random() - 0.5) * 40;
-  const offsetY = (Math.random() - 0.5) * 20;
+  const offsetX = (Math.random() - 0.5) * scaleW(40);
+  const offsetY = (Math.random() - 0.5) * scaleH(20);
 
   const text = scene.add.text(x + offsetX, y + offsetY, `${combo}x`, {
-    fontSize: '28px',
+    fontSize: `${scaleH(28)}px`,
     fontFamily: 'Arial',
     color: colorToHex(color),
     fontStyle: 'bold'
@@ -13,7 +15,7 @@ export function showCombo(scene, x, y, combo, color) {
 
   scene.tweens.add({
     targets: text,
-    y: y + offsetY - 60,
+    y: y + offsetY - scaleH(60),
     alpha: 0,
     scaleX: 1.3,
     scaleY: 1.3,

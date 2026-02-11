@@ -1,4 +1,4 @@
-import { GAME_WIDTH, GAME_HEIGHT, THEME } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, THEME, scaleW, scaleH } from '../config.js';
 
 const CONFETTI_COLORS = [0xfbbf24, THEME.PRIMARY_HEX, 0x9b59b6, 0x34d399, 0x3498db, 0xf97316];
 
@@ -8,7 +8,7 @@ export function emitPerfectConfetti(scene) {
   for (let i = 0; i < count; i++) {
     const x = Math.random() * GAME_WIDTH;
     const y = -10;
-    const size = 2 + Math.random() * 3;
+    const size = scaleH(2) + Math.random() * scaleH(3);
     const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
 
     const particle = scene.add.rectangle(x, y, size, size * 1.5, color);
@@ -17,8 +17,8 @@ export function emitPerfectConfetti(scene) {
 
     scene.tweens.add({
       targets: particle,
-      y: y + 150 + Math.random() * 200,
-      x: x + (Math.random() - 0.5) * 120,
+      y: y + scaleH(150) + Math.random() * scaleH(200),
+      x: x + (Math.random() - 0.5) * scaleW(120),
       angle: particle.angle + (Math.random() - 0.5) * 180,
       alpha: 0,
       duration: 600 + Math.random() * 400,

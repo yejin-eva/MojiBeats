@@ -1,4 +1,4 @@
-import { GAME_WIDTH, GAME_HEIGHT, THEME } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, THEME, scaleW, scaleH } from '../config.js';
 
 const COLORS = [THEME.PRIMARY_HEX, 0x7c3aed, 0x3498db, 0x2ecc71, 0xfbbf24, 0xf43f5e, 0x60a5fa, 0xa78bfa];
 const COUNT = 60;
@@ -8,7 +8,7 @@ export function emitConfetti(scene) {
     const x = Math.random() * GAME_WIDTH;
     const y = -10 - Math.random() * 100;
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const size = 4 + Math.random() * 6;
+    const size = scaleH(4) + Math.random() * scaleH(6);
 
     const piece = scene.add.rectangle(x, y, size, size * 1.5, color)
       .setAngle(Math.random() * 360)
@@ -17,7 +17,7 @@ export function emitConfetti(scene) {
     scene.tweens.add({
       targets: piece,
       y: GAME_HEIGHT + 20,
-      x: x + (Math.random() - 0.5) * 200,
+      x: x + (Math.random() - 0.5) * scaleW(200),
       angle: piece.angle + (Math.random() - 0.5) * 720,
       duration: 2000 + Math.random() * 1500,
       delay: Math.random() * 600,

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, THEME, NOTEBOOK, DIFFICULTY } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, TIMING, COUNTDOWN_DURATION, THEME_FONT, THEME, NOTEBOOK, DIFFICULTY, scaleW, scaleH } from '../config.js';
 import { generateBeatmap } from '../gameplay/BeatmapGenerator.js';
 import { judge, MISS } from '../gameplay/TimingJudge.js';
 import { createHealthState, applyDamage, applyComboHeal, isDead } from '../gameplay/HealthSystem.js';
@@ -42,20 +42,20 @@ export default class GameplayScene extends Phaser.Scene {
 
     this.healthBar = new HealthBar(this);
 
-    const titleText = this.add.text(20, 48, this.songName, {
-      fontSize: '28px',
+    const titleText = this.add.text(scaleW(20), scaleH(48), this.songName, {
+      fontSize: `${scaleH(28)}px`,
       fontFamily: THEME_FONT,
       color: '#5b6abf'
     });
 
-    this.add.text(GAME_WIDTH - 20, 38, '⏸️ ESC pause  |  ⌨️ SPACE/Z/X hit  |  🖱️ Mouse aim', {
-      fontSize: '16px',
+    this.add.text(GAME_WIDTH - scaleW(20), scaleH(38), '⏸️ ESC pause  |  ⌨️ SPACE/Z/X hit  |  🖱️ Mouse aim', {
+      fontSize: `${scaleH(16)}px`,
       fontFamily: THEME_FONT,
       color: '#7c8a9a'
     }).setOrigin(1, 0);
 
-    this.scoreText = this.add.text(GAME_WIDTH - 20, 56, '0', {
-      fontSize: '32px',
+    this.scoreText = this.add.text(GAME_WIDTH - scaleW(20), scaleH(56), '0', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#d97706'
     }).setOrigin(1, 0);
@@ -63,22 +63,22 @@ export default class GameplayScene extends Phaser.Scene {
     this.diffText = null;
     if (this.difficultyKey && DIFFICULTY[this.difficultyKey]) {
       const diff = DIFFICULTY[this.difficultyKey];
-      this.diffText = this.add.text(0, 56, diff.label, {
-        fontSize: '32px',
+      this.diffText = this.add.text(0, scaleH(56), diff.label, {
+        fontSize: `${scaleH(32)}px`,
         fontFamily: THEME_FONT,
         color: diff.color
       }).setOrigin(1, 0);
-      this.diffText.setX(this.scoreText.x - this.scoreText.width - 12);
+      this.diffText.setX(this.scoreText.x - this.scoreText.width - scaleW(12));
     }
 
-    this.comboText = this.add.text(GAME_WIDTH - 20, 90, '', {
-      fontSize: '22px',
+    this.comboText = this.add.text(GAME_WIDTH - scaleW(20), scaleH(90), '', {
+      fontSize: `${scaleH(22)}px`,
       fontFamily: THEME_FONT,
       color: THEME.PRIMARY
     }).setOrigin(1, 0);
 
-    this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 80, '', {
-      fontSize: '40px',
+    this.judgmentText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - scaleH(80), '', {
+      fontSize: `${scaleH(40)}px`,
       fontFamily: THEME_FONT,
       color: '#1f2937'
     }).setOrigin(0.5).setAlpha(0);
@@ -99,7 +99,7 @@ export default class GameplayScene extends Phaser.Scene {
       this.startCountdown();
     } else {
       this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'No audio loaded', {
-        fontSize: '36px',
+        fontSize: `${scaleH(36)}px`,
         fontFamily: 'Arial',
         color: '#6b7280'
       }).setOrigin(0.5);
@@ -115,7 +115,7 @@ export default class GameplayScene extends Phaser.Scene {
     numbers.forEach((num, idx) => {
       this.time.delayedCall(idx * 1000, () => {
         const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, `${num}`, {
-          fontSize: '120px',
+          fontSize: `${scaleH(120)}px`,
           fontFamily: THEME_FONT,
           color: THEME.PRIMARY
         }).setOrigin(0.5).setAlpha(1).setScale(0.5);
@@ -283,7 +283,7 @@ export default class GameplayScene extends Phaser.Scene {
   updateHUD() {
     this.scoreText.setText(this.scoreState.score.toLocaleString());
     if (this.diffText) {
-      this.diffText.setX(this.scoreText.x - this.scoreText.width - 12);
+      this.diffText.setX(this.scoreText.x - this.scoreText.width - scaleW(12));
     }
     if (this.scoreState.combo > 1) {
       this.comboText.setText(`${this.scoreState.combo}x combo`);
@@ -293,11 +293,11 @@ export default class GameplayScene extends Phaser.Scene {
   }
 
   showJudgment(text, color) {
-    this.judgmentText.setText(text).setColor(color).setAlpha(1).setY(GAME_HEIGHT - 80);
+    this.judgmentText.setText(text).setColor(color).setAlpha(1).setY(GAME_HEIGHT - scaleH(80));
     this.tweens.add({
       targets: this.judgmentText,
       alpha: 0,
-      y: GAME_HEIGHT - 100,
+      y: GAME_HEIGHT - scaleH(100),
       duration: 400,
       ease: 'Power2'
     });
@@ -377,26 +377,26 @@ export default class GameplayScene extends Phaser.Scene {
 
     const dimBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.5);
 
-    const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80, 'Paused', {
-      fontSize: '64px',
+    const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - scaleH(80), 'Paused', {
+      fontSize: `${scaleH(64)}px`,
       fontFamily: THEME_FONT,
       color: THEME.PRIMARY,
     }).setOrigin(0.5);
 
-    const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10, 'Resume', {
-      fontSize: '36px',
+    const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + scaleH(10), 'Resume', {
+      fontSize: `${scaleH(36)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: THEME.PRIMARY,
-      padding: { x: 32, y: 12 },
+      padding: { x: scaleW(32), y: scaleH(12) },
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     resumeBtn.on('pointerover', () => resumeBtn.setStyle({ backgroundColor: THEME.PRIMARY_HOVER }));
     resumeBtn.on('pointerout', () => resumeBtn.setStyle({ backgroundColor: THEME.PRIMARY }));
     resumeBtn.on('pointerdown', () => this.resumeGame());
 
-    const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80, 'Quit to Menu', {
-      fontSize: '24px',
+    const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + scaleH(80), 'Quit to Menu', {
+      fontSize: `${scaleH(24)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });

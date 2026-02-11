@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, STICKY_NOTE, EMOJI_POOL, YOUTUBE } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, STICKY_NOTE, EMOJI_POOL, YOUTUBE, scaleW, scaleH } from '../config.js';
 import AudioManager from '../audio/AudioManager.js';
 import YouTubePlayer, { extractVideoId } from '../audio/YouTubePlayer.js';
 import { analyzeBeats } from '../audio/BeatDetector.js';
@@ -32,20 +32,20 @@ export default class SongSelectScene extends Phaser.Scene {
     drawNotebookGrid(this);
     scatterDoodles(this);
 
-    this.add.text(GAME_WIDTH / 2, 100, 'MojiBeats', {
-      fontSize: '96px',
+    this.add.text(GAME_WIDTH / 2, scaleH(100), 'MojiBeats', {
+      fontSize: `${scaleH(96)}px`,
       fontFamily: THEME_FONT,
       color: THEME.PRIMARY
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 190, 'Select a Song', {
-      fontSize: '32px',
+    this.add.text(GAME_WIDTH / 2, scaleH(190), 'Select a Song', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    this.statusText = this.add.text(GAME_WIDTH / 2, 530, '', {
-      fontSize: '22px',
+    this.statusText = this.add.text(GAME_WIDTH / 2, scaleH(530), '', {
+      fontSize: `${scaleH(22)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5).setDepth(1000);
@@ -69,12 +69,12 @@ export default class SongSelectScene extends Phaser.Scene {
   }
 
   createUploadButton() {
-    const uploadBtn = this.add.text(GAME_WIDTH / 2, 320, 'Upload MP3', {
-      fontSize: '28px',
+    const uploadBtn = this.add.text(GAME_WIDTH / 2, scaleH(320), 'Upload MP3', {
+      fontSize: `${scaleH(28)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#6b7280',
-      padding: { x: 28, y: 11 }
+      padding: { x: scaleW(28), y: scaleH(11) }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     uploadBtn.on('pointerover', () => uploadBtn.setStyle({ backgroundColor: '#4b5563' }));
@@ -85,8 +85,8 @@ export default class SongSelectScene extends Phaser.Scene {
   }
 
   createDropZoneHint() {
-    this.dropHint = this.add.text(GAME_WIDTH / 2, 390, 'or drag & drop an MP3 here', {
-      fontSize: '18px',
+    this.dropHint = this.add.text(GAME_WIDTH / 2, scaleH(390), 'or drag & drop an MP3 here', {
+      fontSize: `${scaleH(18)}px`,
       fontFamily: THEME_FONT,
       color: '#9ca3af',
     }).setOrigin(0.5);
@@ -99,7 +99,7 @@ export default class SongSelectScene extends Phaser.Scene {
     const wrapper = document.createElement('div');
     wrapper.style.cssText = `
       position: absolute;
-      left: ${rect.left + rect.width / 2 - 160}px;
+      left: ${rect.left + rect.width / 2 - scaleW(160)}px;
       top: ${rect.top + rect.height * 0.58}px;
       display: flex;
       gap: 6px;
@@ -110,12 +110,12 @@ export default class SongSelectScene extends Phaser.Scene {
     input.type = 'text';
     input.placeholder = 'Paste YouTube URL...';
     input.style.cssText = `
-      width: 240px;
-      padding: 8px 12px;
+      width: ${scaleW(240)}px;
+      padding: ${scaleH(8)}px ${scaleW(12)}px;
       border: 2px solid #d4d4d4;
       border-radius: 6px;
       font-family: ${THEME_FONT}, sans-serif;
-      font-size: 14px;
+      font-size: ${scaleH(14)}px;
       outline: none;
       background: #fffef5;
     `;
@@ -131,7 +131,7 @@ export default class SongSelectScene extends Phaser.Scene {
       background: ${THEME.PRIMARY};
       color: white;
       font-family: ${THEME_FONT}, sans-serif;
-      font-size: 14px;
+      font-size: ${scaleH(14)}px;
       cursor: pointer;
     `;
     btn.addEventListener('mouseover', () => { btn.style.background = THEME.PRIMARY_HOVER; });
@@ -416,7 +416,7 @@ export default class SongSelectScene extends Phaser.Scene {
     const arrowY = COLLAPSED_Y;
 
     if (this.pageStart > 0) {
-      this.leftArrow = this.add.text(leftEdge - 30, arrowY, '<', {
+      this.leftArrow = this.add.text(leftEdge - scaleW(30), arrowY, '<', {
         fontSize: '36px',
         fontFamily: THEME_FONT,
         color: THEME.PRIMARY,
@@ -427,7 +427,7 @@ export default class SongSelectScene extends Phaser.Scene {
     }
 
     if (this.pageStart + max < total) {
-      this.rightArrow = this.add.text(rightEdge + 30, arrowY, '>', {
+      this.rightArrow = this.add.text(rightEdge + scaleW(30), arrowY, '>', {
         fontSize: '36px',
         fontFamily: THEME_FONT,
         color: THEME.PRIMARY,
@@ -439,7 +439,7 @@ export default class SongSelectScene extends Phaser.Scene {
 
     const currentPage = Math.floor(this.pageStart / max) + 1;
     const totalPages = Math.ceil(total / max);
-    this.pageIndicator = this.add.text(GAME_WIDTH / 2, COLLAPSED_Y - STICKY_NOTE.HEIGHT / 2 - 15, `${currentPage} / ${totalPages}`, {
+    this.pageIndicator = this.add.text(GAME_WIDTH / 2, COLLAPSED_Y - STICKY_NOTE.HEIGHT / 2 - scaleH(15), `${currentPage} / ${totalPages}`, {
       fontSize: '14px',
       fontFamily: THEME_FONT,
       color: '#9ca3af',
@@ -536,13 +536,13 @@ export default class SongSelectScene extends Phaser.Scene {
   }
 
   showLoadingSpinner() {
-    this.spinnerText = this.add.text(GAME_WIDTH / 2, 480, '🎵', {
+    this.spinnerText = this.add.text(GAME_WIDTH / 2, scaleH(480), '🎵', {
       fontSize: '48px',
     }).setOrigin(0.5).setDepth(1000);
 
     this.spinnerTween = this.tweens.add({
       targets: this.spinnerText,
-      y: 460,
+      y: scaleH(460),
       angle: { from: -15, to: 15 },
       duration: 400,
       yoyo: true,

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, scaleW, scaleH } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { emitConfetti } from '../effects/Confetti.js';
@@ -33,25 +33,25 @@ export default class VictoryScene extends Phaser.Scene {
       saveScore(songId, { score, maxCombo, accuracy, grade, difficultyKey });
     }
 
-    this.add.text(GAME_WIDTH / 2, 120, '🎉 🏆 ✨', {
-      fontSize: '56px',
+    this.add.text(GAME_WIDTH / 2, scaleH(120), '🎉 🏆 ✨', {
+      fontSize: `${scaleH(56)}px`,
       padding: { top: 8, bottom: 4 }
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 200, 'Song Complete!', {
-      fontSize: '64px',
+    this.add.text(GAME_WIDTH / 2, scaleH(200), 'Song Complete!', {
+      fontSize: `${scaleH(64)}px`,
       fontFamily: THEME_FONT,
       color: '#15803d'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 265, 'You defeated all the emojis!', {
-      fontSize: '26px',
+    this.add.text(GAME_WIDTH / 2, scaleH(265), 'You defeated all the emojis!', {
+      fontSize: `${scaleH(26)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 330, grade, {
-      fontSize: '80px',
+    this.add.text(GAME_WIDTH / 2, scaleH(330), grade, {
+      fontSize: `${scaleH(80)}px`,
       fontFamily: THEME_FONT,
       color: this.gradeColor(grade)
     }).setOrigin(0.5).setScale(0);
@@ -64,14 +64,14 @@ export default class VictoryScene extends Phaser.Scene {
       ease: 'Back.easeOut'
     });
 
-    const scoreText = this.add.text(GAME_WIDTH / 2, 400, 'Score: 0', {
-      fontSize: '32px',
+    const scoreText = this.add.text(GAME_WIDTH / 2, scaleH(400), 'Score: 0', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#374151'
     }).setOrigin(0.5);
 
-    const comboAccText = this.add.text(GAME_WIDTH / 2, 440, 'Max Combo: 0  |  Accuracy: 0%', {
-      fontSize: '24px',
+    const comboAccText = this.add.text(GAME_WIDTH / 2, scaleH(440), 'Max Combo: 0  |  Accuracy: 0%', {
+      fontSize: `${scaleH(24)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
@@ -88,12 +88,12 @@ export default class VictoryScene extends Phaser.Scene {
       comboAccText.setText(`Max Combo: ${maxCombo}  |  Accuracy: ${val}%`);
     });
 
-    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 520, 'Retry', {
-      fontSize: '32px',
+    const retryBtn = this.add.text(GAME_WIDTH / 2 - scaleW(100), scaleH(520), 'Retry', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: THEME.PRIMARY,
-      padding: { x: 28, y: 12 }
+      padding: { x: scaleW(28), y: scaleH(12) }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     retryBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT, {
@@ -103,12 +103,12 @@ export default class VictoryScene extends Phaser.Scene {
       retryDifficultyKey: this.retryDifficultyKey,
     }));
 
-    const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 520, 'Song Select', {
-      fontSize: '32px',
+    const selectBtn = this.add.text(GAME_WIDTH / 2 + scaleW(130), scaleH(520), 'Song Select', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#6b7280',
-      padding: { x: 28, y: 12 }
+      padding: { x: scaleW(28), y: scaleH(12) }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     selectBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT));

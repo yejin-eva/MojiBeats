@@ -1,4 +1,4 @@
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, scaleH } from '../config.js';
 import { drawNotebookGrid, scatterDoodles } from './NotebookBackground.js';
 
 export default class BackgroundReactive {
@@ -10,7 +10,7 @@ export default class BackgroundReactive {
     this.marginLine = margin;
 
     this.pulse = scene.add.circle(
-      GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 0xc4b5fd, 0
+      GAME_WIDTH / 2, GAME_HEIGHT / 2, scaleH(200), 0xc4b5fd, 0
     );
 
     this.doodles = scatterDoodles(scene);
