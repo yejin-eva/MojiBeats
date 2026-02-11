@@ -1,9 +1,9 @@
-import { GAME_WIDTH, GAME_HEIGHT, NOTEBOOK, EMOJI_TEXTURE } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, NOTEBOOK, EMOJI_TEXTURE, scaleW, scaleH } from '../config.js';
 
 const DOODLE_EMOJIS = ['🎵','🎶','🎸','🎤','🎹','⭐','🎧','🎺','🎻','🥁'];
 const DOODLE_COUNT = 14;
-const DOODLE_CANVAS_SIZE = 100;
-const DOODLE_FONT_SIZE = 48;
+const DOODLE_CANVAS_SIZE = scaleH(100);
+const DOODLE_FONT_SIZE = scaleH(48);
 
 function ensureDoodleTextures(scene) {
   DOODLE_EMOJIS.forEach((emoji, i) => {
@@ -72,10 +72,12 @@ export function scatterDoodles(scene) {
 
   for (let i = 0; i < DOODLE_COUNT; i++) {
     const texIdx = i % DOODLE_EMOJIS.length;
-    const pad = 40;
+    const pad = scaleW(40);
     const x = pad + Math.random() * (GAME_WIDTH - pad * 2);
     const y = pad + Math.random() * (GAME_HEIGHT - pad * 2);
-    const scale = 0.6 + Math.random() * 0.5;
+    const baseSize = DOODLE_CANVAS_SIZE;
+    const targetSize = GAME_HEIGHT * (0.08 + Math.random() * 0.07);
+    const scale = targetSize / baseSize;
     const angle = (Math.random() - 0.5) * 30;
 
     const doodle = scene.add.image(x, y, `doodle_${texIdx}`)

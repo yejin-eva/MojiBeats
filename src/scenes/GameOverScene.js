@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK } from '../config.js';
+import { SCENES, GAME_WIDTH, GAME_HEIGHT, THEME_FONT, THEME, NOTEBOOK, scaleW, scaleH } from '../config.js';
 import { pageFlipIn, pageFlipOut } from '../effects/PageFlip.js';
 import { drawNotebookGrid, scatterDoodles } from '../effects/NotebookBackground.js';
 import { calculateGrade, saveScore } from '../storage/ScoreStore.js';
@@ -31,31 +31,31 @@ export default class GameOverScene extends Phaser.Scene {
       saveScore(songId, { score, maxCombo, accuracy, grade, difficultyKey });
     }
 
-    this.add.text(GAME_WIDTH / 2, 120, '😵 💥 🎮', {
-      fontSize: '56px',
+    this.add.text(GAME_WIDTH / 2, scaleH(120), '😵 💥 🎮', {
+      fontSize: `${scaleH(56)}px`,
       padding: { top: 8, bottom: 4 }
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 200, 'Game Over', {
-      fontSize: '64px',
+    this.add.text(GAME_WIDTH / 2, scaleH(200), 'Game Over', {
+      fontSize: `${scaleH(64)}px`,
       fontFamily: THEME_FONT,
       color: '#be123c'
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 265, 'The emojis got you this time...', {
-      fontSize: '26px',
+    this.add.text(GAME_WIDTH / 2, scaleH(265), 'The emojis got you this time...', {
+      fontSize: `${scaleH(26)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
 
-    const scoreText = this.add.text(GAME_WIDTH / 2, 350, 'Score: 0', {
-      fontSize: '32px',
+    const scoreText = this.add.text(GAME_WIDTH / 2, scaleH(350), 'Score: 0', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#374151'
     }).setOrigin(0.5);
 
-    const comboAccText = this.add.text(GAME_WIDTH / 2, 400, 'Max Combo: 0  |  Accuracy: 0%', {
-      fontSize: '24px',
+    const comboAccText = this.add.text(GAME_WIDTH / 2, scaleH(400), 'Max Combo: 0  |  Accuracy: 0%', {
+      fontSize: `${scaleH(24)}px`,
       fontFamily: THEME_FONT,
       color: '#6b7280'
     }).setOrigin(0.5);
@@ -72,12 +72,12 @@ export default class GameOverScene extends Phaser.Scene {
       comboAccText.setText(`Max Combo: ${maxCombo}  |  Accuracy: ${val}%`);
     });
 
-    const retryBtn = this.add.text(GAME_WIDTH / 2 - 100, 500, 'Retry', {
-      fontSize: '32px',
+    const retryBtn = this.add.text(GAME_WIDTH / 2 - scaleW(100), scaleH(500), 'Retry', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: THEME.PRIMARY,
-      padding: { x: 28, y: 12 }
+      padding: { x: scaleW(28), y: scaleH(12) }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     retryBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT, {
@@ -87,12 +87,12 @@ export default class GameOverScene extends Phaser.Scene {
       retryDifficultyKey: this.retryDifficultyKey,
     }));
 
-    const selectBtn = this.add.text(GAME_WIDTH / 2 + 130, 500, 'Song Select', {
-      fontSize: '32px',
+    const selectBtn = this.add.text(GAME_WIDTH / 2 + scaleW(130), scaleH(500), 'Song Select', {
+      fontSize: `${scaleH(32)}px`,
       fontFamily: THEME_FONT,
       color: '#ffffff',
       backgroundColor: '#6b7280',
-      padding: { x: 28, y: 12 }
+      padding: { x: scaleW(28), y: scaleH(12) }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     selectBtn.on('pointerdown', () => this.fadeToScene(SCENES.SONG_SELECT));

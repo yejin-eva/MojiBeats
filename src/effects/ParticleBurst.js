@@ -1,4 +1,4 @@
-import { EMOJI_TEXTURE } from '../config.js';
+import { EMOJI_TEXTURE, scaleH } from '../config.js';
 import { getFragmentKeys, FRAGMENT_COLS, FRAGMENT_ROWS } from '../gameplay/EmojiCache.js';
 
 export function emitBurst(scene, x, y, color, emoji) {
@@ -15,7 +15,7 @@ export function emitBurst(scene, x, y, color, emoji) {
     const screenY = y + localY * displayScale;
 
     const angle = Math.atan2(localY, localX) + (Math.random() - 0.5) * 0.6;
-    const speed = 25 + Math.random() * 59;
+    const speed = scaleH(25) + Math.random() * scaleH(59);
 
     const frag = scene.add.image(screenX, screenY, key);
     frag.setScale(displayScale);
@@ -25,7 +25,7 @@ export function emitBurst(scene, x, y, color, emoji) {
     scene.tweens.add({
       targets: frag,
       x: screenX + Math.cos(angle) * speed,
-      y: screenY + Math.sin(angle) * speed + 21,
+      y: screenY + Math.sin(angle) * speed + scaleH(21),
       angle: (Math.random() - 0.5) * 180,
       duration,
       ease: 'Power2',

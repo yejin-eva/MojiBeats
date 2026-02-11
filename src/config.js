@@ -1,6 +1,12 @@
 // Game dimensions
-export const GAME_WIDTH = 1280;
-export const GAME_HEIGHT = 720;
+export const GAME_WIDTH = 1920;
+export const GAME_HEIGHT = 1080;
+
+// Design-time base resolution (all layout authored at this size)
+const BASE_W = 1280;
+const BASE_H = 720;
+export const scaleW = (px) => Math.round(px * GAME_WIDTH / BASE_W);
+export const scaleH = (px) => Math.round(px * GAME_HEIGHT / BASE_H);
 
 // Timing windows (ms from perfect beat)
 export const TIMING = {
@@ -68,11 +74,11 @@ export const SCENES = {
 
 // Emoji texture caching
 export const EMOJI_TEXTURE = {
-  CANVAS_SIZE: 96,
-  FONT_SIZE: 64,
-  DILATION_RADIUS: 3,
+  CANVAS_SIZE: scaleH(96),
+  FONT_SIZE: scaleH(64),
+  DILATION_RADIUS: scaleH(3),
   FONT_FAMILY: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
-  DISPLAY_SCALE: 1.5
+  DISPLAY_SCALE: GAME_HEIGHT * 0.2 / scaleH(96)
 };
 
 // Spatial proximity: beat timing maps to screen distance
@@ -103,13 +109,13 @@ export const STICKY_NOTE = {
     { bg: '#e8f5e9', border: '#388e3c', text: '#1b5e20' },  // green
     { bg: '#f3e5f5', border: '#7b1fa2', text: '#4a148c' },  // purple
   ],
-  WIDTH: 170,
-  HEIGHT: 130,
-  COLLAPSED_Y: 660,
-  PEEK_Y: 625,
-  SELECTED_Y: 300,
+  WIDTH: scaleW(170),
+  HEIGHT: scaleH(130),
+  COLLAPSED_Y: scaleH(660),
+  PEEK_Y: scaleH(625),
+  SELECTED_Y: scaleH(300),
   SELECTED_SCALE: 1.8,
-  FAN_OVERLAP: 30,
+  FAN_OVERLAP: scaleW(30),
   MAX_VISIBLE: 6,
   TILT_RANGE: 8,
   PEEK_DURATION: 200,
@@ -150,7 +156,7 @@ export const NOTEBOOK = {
   BG_COLOR: '#f8f8f8',
   GRID_COLOR: 0xd4e4f7,
   GRID_ALPHA: 0.4,
-  GRID_SPACING: 28,
+  GRID_SPACING: scaleH(28),
   MARGIN_COLOR: 0xf0a0a0,
   MARGIN_ALPHA: 0.5,
   MARGIN_X: Math.round(GAME_WIDTH * 0.1125)
